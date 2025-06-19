@@ -139,7 +139,7 @@ export default function Stockit() {
           </TabsContent>
 
           <TabsContent value="professional-budget">
-            <ProfessionalBudget currency={currency} />
+            <ProfessionalBudget currency={currency} user={user} />
           </TabsContent>
         </Tabs>
       </main>

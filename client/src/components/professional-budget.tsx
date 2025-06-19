@@ -22,18 +22,47 @@ interface Supplier {
   allocation: string;
 }
 
-export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps) {
+export default function ProfessionalBudget({ currency, user }: ProfessionalBudgetProps) {
   const [netServices, setNetServices] = useState("");
-  const [budgetPercent, setBudgetPercent] = useState("7.0");
+  const [budgetPercent, setBudgetPercent] = useState(user?.defaultProfessionalBudgetPercent || "7.0");
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
+
+  // Refs for keyboard navigation
+  const netServicesRef = useRef<HTMLInputElement>(null);
+  const budgetPercentRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: budgetData } = useQuery<{ budget: ProfessionalBudget; suppliers: ProfessionalSupplier[] } | null>({
     queryKey: ["/api/professional-budget"],
+    retry: false,
+  });
+
+  const updateBudgetPercentMutation = useMutation({
+    mutationFn: async (budgetPercent: string) => {
+      const response = await apiRequest("PATCH", "/api/auth/user/professional-budget-percent", { budgetPercent });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Default professional budget percentage updated" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({ title: "Error", description: "Failed to update budget percentage", variant: "destructive" });
+    },
   });
 
   const saveBudgetMutation = useMutation({
@@ -131,11 +160,13 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                     </Tooltip>
                   </div>
                   <Input
+                    ref={netServicesRef}
                     id="netServices"
                     type="number"
                     step="0.01"
                     value={netServices}
                     onChange={(e) => setNetServices(e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
                   />
@@ -154,12 +185,13 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                     </Tooltip>
                   </div>
                   <Input
+                    ref={budgetPercentRef}
                     id="budgetPercent"
                     type="number"
                     step="0.1"
                     max="100"
                     value={budgetPercent}
-                    onChange={(e) => setBudgetPercent(e.target.value)}
+                    onChange={(e) => handleBudgetPercentChange(e.target.value)}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />

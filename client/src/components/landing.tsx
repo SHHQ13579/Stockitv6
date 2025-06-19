@@ -1,14 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Calculator, ShoppingCart, Briefcase } from "lucide-react";
+import { Calculator, ShoppingCart, Briefcase } from "lucide-react";
+import hannaLogoPath from "@assets/HANNA Logo_1750364236944.png";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
       <div className="max-w-4xl mx-auto text-center">
         <div className="mb-8">
-          <div className="w-16 h-16 bg-brand-blue rounded-xl flex items-center justify-center mx-auto mb-4">
-            <TrendingUp className="text-white" size={32} />
+          <div className="flex items-center justify-center mb-6">
+            <img 
+              src={hannaLogoPath} 
+              alt="Hanna Logo" 
+              className="h-24 w-auto"
+            />
           </div>
           <h1 className="text-6xl font-bold text-slate-900 mb-4">Stockit</h1>
           <p className="text-2xl text-slate-600 mb-8">
