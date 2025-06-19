@@ -85,8 +85,11 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    // Save current state before any change
-    saveToUndoStack();
+    // Only save to undo stack if the value is actually different
+    const currentValue = suppliers[index]?.[field] || "";
+    if (value !== currentValue) {
+      saveToUndoStack();
+    }
     const updated = [...suppliers];
     updated[index] = { ...updated[index], [field]: value };
     setSuppliers(updated);
@@ -126,14 +129,18 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleNetSalesChange = (value: string) => {
-    // Save current state before any change
-    saveToUndoStack();
+    // Only save to undo stack if the value is actually different
+    if (value !== netSales) {
+      saveToUndoStack();
+    }
     setNetSales(value);
   };
 
   const handleBudgetPercentChange = (value: string) => {
-    // Save current state before any change
-    saveToUndoStack();
+    // Only save to undo stack if the value is actually different
+    if (value !== budgetPercent) {
+      saveToUndoStack();
+    }
     setBudgetPercent(value);
   };
 

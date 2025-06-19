@@ -204,8 +204,11 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    // Save current state to undo stack before any change
-    setUndoStack(prev => [...prev.slice(-9), formData]); // Keep last 10 states
+    // Only save to undo stack if the value is actually different
+    const currentValue = formData[field as keyof typeof formData];
+    if (value !== currentValue) {
+      setUndoStack(prev => [...prev.slice(-9), formData]); // Keep last 10 states
+    }
     
     setFormData(prev => ({ ...prev, [field]: value }));
     
