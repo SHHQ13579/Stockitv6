@@ -382,119 +382,128 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="listPrice">List Price</Label>
+                    <Label htmlFor="listPrice" className="text-lg font-medium">List Price</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>The standard wholesale price you normally pay</p>
+                        <p className="text-base">The standard wholesale price you normally pay</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={listPriceRef}
                     id="listPrice"
                     type="number"
                     step="0.01"
                     value={formData.listPrice}
                     onChange={(e) => handleInputChange("listPrice", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, discountRef)}
                     placeholder="0.00"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="discount">Discount (%)</Label>
+                    <Label htmlFor="discount" className="text-lg font-medium">Discount (%)</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Any negotiated discount off the list price</p>
+                        <p className="text-base">Any negotiated discount off the list price</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={discountRef}
                     id="discount"
                     type="number"
                     step="0.1"
                     max="100"
                     value={formData.discount}
                     onChange={(e) => handleInputChange("discount", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, retroDiscountRef)}
                     placeholder="0.0"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="retroDiscount">Retro Discount (%)</Label>
+                    <Label htmlFor="retroDiscount" className="text-lg font-medium">Retro Discount (%)</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Any retrospective discount or rebate</p>
+                        <p className="text-base">Any retrospective discount or rebate</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={retroDiscountRef}
                     id="retroDiscount"
                     type="number"
                     step="0.1"
                     max="100"
                     value={formData.retroDiscount}
                     onChange={(e) => handleInputChange("retroDiscount", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, usageRef)}
                     placeholder="0.0"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="usage">Usage/Loss (%)</Label>
+                    <Label htmlFor="usage" className="text-lg font-medium">Usage/Loss (%)</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Allowance for product usage, wastage, or losses</p>
+                        <p className="text-base">Allowance for product usage, wastage, or losses</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={usageRef}
                     id="usage"
                     type="number"
                     step="0.1"
                     max="100"
                     value={formData.usage}
                     onChange={(e) => handleInputChange("usage", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, commissionRef)}
                     placeholder="0.0"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="commission">Commission</Label>
+                    <Label htmlFor="commission" className="text-lg font-medium">Commission</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Commission paid to team member for selling this product</p>
+                        <p className="text-base">Commission paid to team member for selling this product</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={commissionRef}
                     id="commission"
                     type="number"
                     step="0.01"
                     value={formData.commission}
                     onChange={(e) => handleInputChange("commission", e.target.value)}
                     placeholder="0.00"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
               </div>
@@ -506,25 +515,45 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
         <div className="lg:col-span-1 space-y-6">
           <Card className="print-friendly">
             <CardHeader>
-              <CardTitle>Profit Summary</CardTitle>
+              <CardTitle className="text-2xl">Profit Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {calculation ? (
                 <>
+                  {formData.vatRegistered && (
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-lg font-medium text-blue-700">RRP (Inc VAT)</span>
+                        <span className="text-xl font-semibold text-blue-700">
+                          {formatCurrency(parseFloat(formData.rrp) || 0, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-medium text-blue-600">Net Price (Ex VAT)</span>
+                        <span className="text-lg font-semibold text-blue-600">
+                          {formatCurrency(calculation.salePrice, currency)}
+                        </span>
+                      </div>
+                      <div className="text-sm text-blue-600 mt-1">VAT: {formData.vatPercent}%</div>
+                    </div>
+                  )}
+
                   <div className="bg-slate-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-slate-600">Real Cost</span>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-medium text-slate-600">Real Cost</span>
+                      <span className="text-xl font-semibold text-slate-900">
                         {formatCurrency(calculation.realCost, currency)}
                       </span>
                     </div>
-                    <div className="text-xs text-slate-500">After all discounts and adjustments</div>
+                    <div className="text-base text-slate-500">After all discounts and adjustments</div>
                   </div>
 
                   <div className="bg-slate-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-slate-600">Sale Price</span>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-medium text-slate-600">
+                        {formData.vatRegistered ? "Net Sale Price" : "Sale Price"}
+                      </span>
+                      <span className="text-xl font-semibold text-slate-900">
                         {formatCurrency(calculation.salePrice, currency)}
                       </span>
                     </div>

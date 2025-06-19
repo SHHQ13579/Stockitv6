@@ -86,8 +86,35 @@ The application implements an abstraction layer for data storage with both in-me
 - Port 5000 configured for external access
 - Environment variables for database connection strings
 
+## Recent Changes
+
+### Authentication & User Management (June 19, 2025)
+✓ Implemented Replit OAuth authentication system
+✓ Added user-specific data isolation
+✓ Created landing page for non-authenticated users
+✓ Added logout functionality in header
+
+### VAT Calculation Enhancement (June 19, 2025)
+✓ Added VAT percentage field to profit calculator
+✓ Implemented VAT-inclusive RRP calculations (Example: £30 RRP with 20% VAT = £25 net)
+✓ User's VAT percentage saved as default for future calculations
+✓ VAT display in profit summary when registered
+
+### UI/UX Improvements (June 19, 2025)
+✓ Increased font sizes throughout application for large screen readability
+✓ Enhanced keyboard navigation with Enter key field progression
+✓ Larger input fields (text-xl, h-12) and buttons
+✓ Improved tooltips and labels with larger text
+✓ Better visual hierarchy with larger headings
+
+### Database Integration (June 19, 2025)
+✓ Migrated from in-memory to PostgreSQL storage
+✓ User-specific data separation for all features
+✓ Session management with database storage
+✓ Updated schema with user references and VAT fields
+
 ## Changelog
-- June 19, 2025. Initial setup
+- June 19, 2025. Initial setup and major enhancements
 
 ## User Preferences
 

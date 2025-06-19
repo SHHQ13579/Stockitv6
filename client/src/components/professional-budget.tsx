@@ -103,8 +103,8 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
   return (
     <div className="space-y-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Professional Stock Budget</h2>
-        <p className="text-lg text-slate-600">
+        <h2 className="text-4xl font-bold text-slate-900 mb-2">Professional Stock Budget</h2>
+        <p className="text-xl text-slate-600">
           Manage your professional stock budget based on service revenue
         </p>
       </div>
@@ -114,19 +114,19 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
         <div className="lg:col-span-2 space-y-6">
           <Card className="print-friendly">
             <CardHeader>
-              <CardTitle>Budget Configuration</CardTitle>
+              <CardTitle className="text-2xl">Budget Configuration</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="netServices">Total Salon Net Services</Label>
+                    <Label htmlFor="netServices" className="text-lg font-medium">Total Salon Net Services</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Total revenue from salon services</p>
+                        <p className="text-base">Total revenue from salon services</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -137,19 +137,19 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                     value={netServices}
                     onChange={(e) => setNetServices(e.target.value)}
                     placeholder="0.00"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="budgetPercent">Professional Stock Budget (%)</Label>
+                    <Label htmlFor="budgetPercent" className="text-lg font-medium">Professional Stock Budget (%)</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Percentage of service revenue allocated to professional stock</p>
+                        <p className="text-base">Percentage of service revenue allocated to professional stock</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -161,7 +161,7 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                     value={budgetPercent}
                     onChange={(e) => setBudgetPercent(e.target.value)}
                     placeholder="7.0"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
               </div>
@@ -171,30 +171,31 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
           <Card className="print-friendly">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Supplier Allocations</CardTitle>
+                <CardTitle className="text-2xl">Supplier Allocations</CardTitle>
                 <Button
                   onClick={addSupplier}
-                  className="bg-brand-blue hover:bg-blue-700 no-print"
+                  className="bg-brand-blue hover:bg-blue-700 no-print text-base px-4 py-2"
                 >
-                  <Plus className="mr-2" size={16} />
+                  <Plus className="mr-2" size={18} />
                   Add Supplier
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {suppliers.map((supplier, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                   <div>
-                    <Label htmlFor={`supplier-name-${index}`}>Supplier Name</Label>
+                    <Label htmlFor={`supplier-name-${index}`} className="text-lg font-medium">Supplier Name</Label>
                     <Input
                       id={`supplier-name-${index}`}
                       value={supplier.name}
                       onChange={(e) => updateSupplier(index, "name", e.target.value)}
                       placeholder="Enter supplier name"
+                      className="text-xl h-12"
                     />
                   </div>
                   <div>
-                    <Label htmlFor={`supplier-allocation-${index}`}>Allocation Amount</Label>
+                    <Label htmlFor={`supplier-allocation-${index}`} className="text-lg font-medium">Allocation Amount</Label>
                     <Input
                       id={`supplier-allocation-${index}`}
                       type="number"
@@ -202,6 +203,7 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                       value={supplier.allocation}
                       onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
                       placeholder="0.00"
+                      className="text-xl h-12"
                     />
                   </div>
                   <div>
@@ -209,10 +211,10 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                       variant="ghost"
                       size="sm"
                       onClick={() => removeSupplier(index)}
-                      className="text-red-600 hover:bg-red-50 no-print"
+                      className="text-red-600 hover:bg-red-50 no-print px-4 py-2"
                       disabled={suppliers.length === 1}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </Button>
                   </div>
                 </div>
@@ -224,7 +226,7 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
             <Button
               onClick={handleSave}
               disabled={saveBudgetMutation.isPending}
-              className="bg-brand-blue hover:bg-blue-700"
+              className="bg-brand-blue hover:bg-blue-700 text-lg px-6 py-3"
             >
               {saveBudgetMutation.isPending ? "Saving..." : "Save Budget"}
             </Button>
@@ -235,27 +237,27 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
         <div className="lg:col-span-1">
           <Card className="print-friendly">
             <CardHeader>
-              <CardTitle>Budget Summary</CardTitle>
+              <CardTitle className="text-2xl">Budget Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-blue-700">Total Budget</span>
-                  <span className="text-2xl font-bold text-blue-700">
+                  <span className="text-lg font-medium text-blue-700">Total Budget</span>
+                  <span className="text-3xl font-bold text-blue-700">
                     {formatCurrency(totalBudget, currency)}
                   </span>
                 </div>
-                <div className="text-xs text-blue-600 opacity-80">Available for stock purchases</div>
+                <div className="text-base text-blue-600 opacity-80">Available for stock purchases</div>
               </div>
 
               <div className="bg-slate-50 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-600">Allocated</span>
-                  <span className="text-lg font-semibold text-slate-900">
+                  <span className="text-lg font-medium text-slate-600">Allocated</span>
+                  <span className="text-xl font-semibold text-slate-900">
                     {formatCurrency(totalAllocated, currency)}
                   </span>
                 </div>
-                <div className="text-xs text-slate-500">Assigned to suppliers</div>
+                <div className="text-base text-slate-500">Assigned to suppliers</div>
               </div>
 
               <div className={`rounded-lg p-4 ${
@@ -264,18 +266,18 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
                   : 'bg-green-50 border border-green-200'
               }`}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`text-sm font-medium ${
+                  <span className={`text-lg font-medium ${
                     remaining < 0 ? 'text-red-700' : 'text-green-700'
                   }`}>
                     {remaining < 0 ? 'Over Budget' : 'Remaining'}
                   </span>
-                  <span className={`text-xl font-bold ${
+                  <span className={`text-2xl font-bold ${
                     remaining < 0 ? 'text-red-700' : 'text-green-700'
                   }`}>
                     {formatCurrency(Math.abs(remaining), currency)}
                   </span>
                 </div>
-                <div className={`text-xs ${
+                <div className={`text-base ${
                   remaining < 0 ? 'text-red-600' : 'text-green-600'
                 } opacity-80`}>
                   {remaining < 0 ? 'Exceeds allocated budget' : 'Left to allocate'}
@@ -285,13 +287,13 @@ export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps
               <Separator />
 
               <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-600">Budget Utilization:</span>
-                  <span className="font-medium">{utilization.toFixed(1)}%</span>
+                <div className="flex justify-between text-lg mb-3">
+                  <span className="text-slate-600 font-medium">Budget Utilization:</span>
+                  <span className="font-bold text-xl">{utilization.toFixed(1)}%</span>
                 </div>
-                <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 rounded-full h-3">
                   <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-3 rounded-full transition-all duration-300 ${
                       utilization > 100
                         ? 'bg-red-500'
                         : utilization > 80

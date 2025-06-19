@@ -16,14 +16,14 @@ const currencies = [
 export default function CurrencySelector({ currency, onCurrencyChange }: CurrencySelectorProps) {
   return (
     <div className="flex items-center space-x-2">
-      <Label className="text-sm font-medium text-slate-700">Currency:</Label>
+      <Label className="text-base font-medium text-slate-700">Currency:</Label>
       <Select value={currency} onValueChange={onCurrencyChange}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-44 h-10 text-base">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {currencies.map((curr) => (
-            <SelectItem key={curr.code} value={curr.code}>
+            <SelectItem key={curr.code} value={curr.code} className="text-base">
               {curr.name}
             </SelectItem>
           ))}
