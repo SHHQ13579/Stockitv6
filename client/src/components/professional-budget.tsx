@@ -160,6 +160,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     saveToUndoStack();
     setNetServices("");
     setSuppliers([{ name: "", allocation: "" }]);
+    // Reset focused fields tracking after clear
+    setFocusedFields(new Set());
   };
 
   const handleUndo = () => {
@@ -172,10 +174,15 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     }
   };
 
-  // Store the initial state when user starts editing
+  // Track which fields have been focused to prevent duplicate undo saves
+  const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+
+  // Store the initial state when user starts editing (only once per field)
   const handleFieldFocus = (fieldKey: string) => {
-    // Save current state to undo stack when user starts editing
-    saveToUndoStack();
+    if (!focusedFields.has(fieldKey)) {
+      saveToUndoStack();
+      setFocusedFields(prev => new Set(prev).add(fieldKey));
+    }
   };
 
   const handleNetServicesChange = (value: string) => {

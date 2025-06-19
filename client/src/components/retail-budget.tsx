@@ -124,6 +124,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     saveToUndoStack();
     setNetSales("");
     setSuppliers([{ name: "", allocation: "" }]);
+    // Reset focused fields tracking after clear
+    setFocusedFields(new Set());
   };
 
   const handleUndo = () => {
@@ -136,10 +138,15 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     }
   };
 
-  // Store the initial state when user starts editing
+  // Track which fields have been focused to prevent duplicate undo saves
+  const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+
+  // Store the initial state when user starts editing (only once per field)
   const handleFieldFocus = (fieldKey: string) => {
-    // Save current state to undo stack when user starts editing
-    saveToUndoStack();
+    if (!focusedFields.has(fieldKey)) {
+      saveToUndoStack();
+      setFocusedFields(prev => new Set(prev).add(fieldKey));
+    }
   };
 
   const handleNetSalesChange = (value: string) => {
