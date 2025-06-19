@@ -10,7 +10,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import type { RetailBudget, RetailSupplier } from "@shared/schema";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileSupplierRow from "./mobile-supplier-row";
+import type { RetailBudget, RetailSupplier, InsertRetailBudget, InsertRetailSupplier } from "@shared/schema";
 
 interface RetailBudgetProps {
   currency: string;
@@ -227,43 +230,58 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {suppliers.map((supplier, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                  <div>
-                    <Label htmlFor={`supplier-name-${index}`} className="text-lg font-medium">Supplier Name</Label>
-                    <Input
-                      id={`supplier-name-${index}`}
-                      value={supplier.name}
-                      onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                      placeholder="Enter supplier name"
-                      className="text-xl h-12"
-                    />
+{isMobile ? (
+                // Mobile view - stacked layout
+                suppliers.map((supplier, index) => (
+                  <MobileSupplierRow
+                    key={index}
+                    supplier={supplier}
+                    index={index}
+                    canRemove={suppliers.length > 1}
+                    onUpdate={updateSupplier}
+                    onRemove={removeSupplier}
+                  />
+                ))
+              ) : (
+                // Desktop view - grid layout
+                suppliers.map((supplier, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                      <Label htmlFor={`supplier-name-${index}`} className="text-lg font-medium">Supplier Name</Label>
+                      <Input
+                        id={`supplier-name-${index}`}
+                        value={supplier.name}
+                        onChange={(e) => updateSupplier(index, "name", e.target.value)}
+                        placeholder="Enter supplier name"
+                        className="text-xl h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`supplier-allocation-${index}`} className="text-lg font-medium">Allocation Amount</Label>
+                      <Input
+                        id={`supplier-allocation-${index}`}
+                        type="number"
+                        step="0.01"
+                        value={supplier.allocation}
+                        onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
+                        placeholder="0.00"
+                        className="text-xl h-12"
+                      />
+                    </div>
+                    <div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSupplier(index)}
+                        className="text-red-600 hover:bg-red-50 no-print px-4 py-2"
+                        disabled={suppliers.length === 1}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor={`supplier-allocation-${index}`} className="text-lg font-medium">Allocation Amount</Label>
-                    <Input
-                      id={`supplier-allocation-${index}`}
-                      type="number"
-                      step="0.01"
-                      value={supplier.allocation}
-                      onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                      placeholder="0.00"
-                      className="text-xl h-12"
-                    />
-                  </div>
-                  <div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSupplier(index)}
-                      className="text-red-600 hover:bg-red-50 no-print px-4 py-2"
-                      disabled={suppliers.length === 1}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
 
