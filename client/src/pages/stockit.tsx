@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, ShoppingCart, Briefcase, TrendingUp, LogOut } from "lucide-react";
+import { Calculator, ShoppingCart, Briefcase, TrendingUp, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -10,13 +10,28 @@ import ProfitCalculator from "@/components/profit-calculator";
 import RetailBudget from "@/components/retail-budget";
 import ProfessionalBudget from "@/components/professional-budget";
 import CurrencySelector from "@/components/currency-selector";
+import StockWizard from "@/components/stock-wizard";
 import { exportToExcel } from "@/lib/excel-export";
 
 export default function Stockit() {
   const [activeTab, setActiveTab] = useState("profit-calculator");
   const [currency, setCurrency] = useState("GBP");
+  const [showWizard, setShowWizard] = useState(false);
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+
+  // Check if user is new (show wizard on first visit)
+  useEffect(() => {
+    const hasSeenWizard = localStorage.getItem('stockit-wizard-completed');
+    if (!hasSeenWizard && user) {
+      setShowWizard(true);
+    }
+  }, [user]);
+
+  const handleWizardComplete = () => {
+    localStorage.setItem('stockit-wizard-completed', 'true');
+    setShowWizard(false);
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -143,6 +158,13 @@ export default function Stockit() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Stock Wizard */}
+      <StockWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={handleWizardComplete}
+      />
     </div>
   );
 }
