@@ -131,9 +131,19 @@ The application implements an abstraction layer for data storage with both in-me
 ✓ Horizontal scrolling tabs for easy navigation on small screens
 ✓ Prevents zoom on iOS with proper font sizing for inputs
 
+### Stock Wizard Onboarding (June 19, 2025)
+✓ Interactive tutorial with animated demonstrations of key features
+✓ Step-by-step walkthrough of Profit Calculator, Retail Budget, and Professional Budget
+✓ Animated examples showing real calculations and workflows
+✓ Keyboard shortcuts and pro tips section
+✓ Automatic display for new users with option to replay anytime
+✓ Framer Motion animations for engaging user experience
+✓ Progress tracking and completion rewards
+
 ## Changelog
 - June 19, 2025: Initial setup and major enhancements
 - June 19, 2025: Fixed undo functionality to work correctly with Enter key navigation
+- June 19, 2025: Added Stock Wizard interactive onboarding tutorial with animations
 
 ## User Preferences
 
