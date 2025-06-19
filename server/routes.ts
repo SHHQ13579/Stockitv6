@@ -40,6 +40,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/auth/user/professional-budget-percent', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { budgetPercent } = req.body;
+      await storage.updateUserProfessionalBudgetPercent(userId, budgetPercent);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating professional budget percent:", error);
+      res.status(500).json({ message: "Failed to update professional budget percent" });
+    }
+  });
+
   // Profit scenarios
   app.get("/api/profit-scenarios", isAuthenticated, async (req: any, res) => {
     try {

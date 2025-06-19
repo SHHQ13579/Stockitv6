@@ -25,6 +25,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserVatPercent(userId: string, vatPercent: string): Promise<void>;
+  updateUserProfessionalBudgetPercent(userId: string, budgetPercent: string): Promise<void>;
   
   // Profit scenarios
   getProfitScenarios(userId: string): Promise<ProfitScenario[]>;

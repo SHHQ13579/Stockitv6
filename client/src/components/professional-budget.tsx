@@ -74,7 +74,18 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
       queryClient.invalidateQueries({ queryKey: ["/api/professional-budget"] });
       toast({ title: "Success", description: "Budget saved successfully" });
     },
-    onError: () => {
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized", 
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
       toast({ title: "Error", description: "Failed to save budget", variant: "destructive" });
     },
   });

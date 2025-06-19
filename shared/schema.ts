@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   defaultVatPercent: decimal("default_vat_percent", { precision: 5, scale: 2 }).default("20.0"),
+  defaultProfessionalBudgetPercent: decimal("default_professional_budget_percent", { precision: 5, scale: 2 }).default("7.0"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
