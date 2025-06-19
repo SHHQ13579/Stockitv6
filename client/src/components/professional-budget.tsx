@@ -108,20 +108,34 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   const remaining = totalBudget - totalAllocated;
   const utilization = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
+  const saveToUndoStack = () => {
+    setUndoStack(prev => [...prev.slice(-9), { netServices, suppliers, budgetPercent }]); // Keep last 10 states
+  };
+
+  const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
+    const newSuppliers = [...suppliers];
+    newSuppliers[index] = { ...newSuppliers[index], [field]: value };
+    
+    // Only save to undo stack when completing a supplier (both name and allocation filled)
+    if (field === 'allocation' && value.trim() !== '' && newSuppliers[index].name.trim() !== '') {
+      saveToUndoStack();
+    } else if (field === 'name' && value.trim() !== '' && newSuppliers[index].allocation.trim() !== '') {
+      saveToUndoStack();
+    }
+    
+    setSuppliers(newSuppliers);
+  };
+
   const addSupplier = () => {
+    saveToUndoStack();
     setSuppliers([...suppliers, { name: "", allocation: "" }]);
   };
 
   const removeSupplier = (index: number) => {
     if (suppliers.length > 1) {
+      saveToUndoStack();
       setSuppliers(suppliers.filter((_, i) => i !== index));
     }
-  };
-
-  const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    const updated = [...suppliers];
-    updated[index] = { ...updated[index], [field]: value };
-    setSuppliers(updated);
   };
 
   const handleSave = () => {
