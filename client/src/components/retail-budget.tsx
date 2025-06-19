@@ -104,8 +104,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleSupplierBlur = (index: number, field: keyof Supplier, value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing (on blur)
-    if (value !== originalValue) {
+    // Only save to undo stack when user finishes editing (on blur) and value changed
+    if (value !== originalValue && originalValue !== undefined) {
       saveToUndoStack();
     }
   };
@@ -148,8 +148,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleNetSalesBlur = (value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing
-    if (value !== originalValue) {
+    // Only save to undo stack when user finishes editing and value changed
+    if (value !== originalValue && originalValue !== undefined) {
       saveToUndoStack();
     }
   };
@@ -159,8 +159,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleBudgetPercentBlur = (value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing
-    if (value !== originalValue) {
+    // Only save to undo stack when user finishes editing and value changed
+    if (value !== originalValue && originalValue !== undefined) {
       saveToUndoStack();
     }
   };
@@ -169,7 +169,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const [originalValues, setOriginalValues] = useState<{[key: string]: string}>({});
 
   const handleFieldFocus = (key: string, value: string) => {
-    setOriginalValues(prev => ({ ...prev, [key]: value }));
+    // Only set original value if it's not already set (to capture the first focus)
+    setOriginalValues(prev => prev[key] !== undefined ? prev : { ...prev, [key]: value });
   };
 
   // Handle Enter key navigation
@@ -351,7 +352,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
               disabled={undoStack.length === 0}
               className="text-lg px-6 py-3 border-slate-300 hover:bg-slate-50"
             >
-              Undo
+              Undo ({undoStack.length})
             </Button>
             <Button
               onClick={handleSave}
