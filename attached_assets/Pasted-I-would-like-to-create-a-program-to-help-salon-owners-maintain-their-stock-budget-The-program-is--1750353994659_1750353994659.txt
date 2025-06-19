@@ -1,0 +1,100 @@
+I would like to create a program to help salon owners maintain their stock budget
+
+The program is called Stockit
+
+Please include LOGO as per attached
+
+There are three pages to the program
+
+1.	The Profit calculator
+
+2.	The Retail Stock Budget
+
+3.	The Professional Stock Budget
+
+The Profit Calculator
+
+The purpose of the profit calculator is for the user to establish how muc profit they make from selling an particular item.
+
+The user can add in 
+
+Product: The name of the product
+RRP: The Retail Price they will sell it ( RRP) 
+VAT Registered: A tick box to say if they are a VAT registered business
+
+List Price: The List price that they would normally pay for the product
+Discount: This is where they put any negotiated discount off the list price
+Retro: This is where they put any negotiated retrospective discount
+Usage: This is where the user can insert a percentage for an allowance for usage or losses 
+Commission: This is where the user can put in the amount of commission that they will pay to a team member that sells the product
+
+There should be a clear summary of the real cost of the product, the sale price and the profit.
+
+The layout needs to be clear and user friendly and in a large format so that it can be displayed on a screen and easy to read. 
+
+Any explanations to be hidden and only revealed with an (i) icon. 
+
+The profit calculator should have the option to save multiple scenarios so that the user can make comparisons between different products or scenarios.  
+
+
+The Retail Stock Budget
+
+The retail stock budget page is to help the user keep a clear track of how they order their stock. The retail stock budget is to manage the budge for purchasing retail items.
+
+The user has to work to a set percentage budget. 
+
+For example – if the retail stock budget is 65% - If the salon retail turnover was £1000 then the use would have £650 to replace the stock sold.
+
+On this page, the user will insert their NET SALES
+
+NET SALES: this is the amount of retail items sold
+RETAIL STOCK BUDGET: this is the percentage of net sales that is allocated to replacing sold stock
+
+There is then a number of fields, that can be expanded as required 
+The user will insert the company name where they will be purchasing their products.
+Oposite the company, they will insert the amount they will spend with that company.
+
+FOR EXAMPLE – if the net sales = £1000 and the Retail Stock Budget is 65% - the user has £650 to spend on stock. If the user purchases £300 of stock from company 1 – they would have £350 left over to spend with other companies / brands. 
+
+There should be a running total at the bottom of the page that shows the user exactly how much they have to spend to stay on budget.
+If they go over budget, then the negative balance should be highlighted in red to make it clear that they are over budget. 
+
+The currency format is default to British pounds £ 
+However the user can change the currency if required. 
+
+The user should have the ability to print out their budget report and a print friendly format. 
+
+
+ 
+The Professional Stock Budget
+
+The professional stock budget page works in the same way
+
+The user inserts the Total Salon Net Services
+The user inserts the Professional Stock Budget
+This tells the user how much they have to spend on professional stock 
+
+FOR EXAMPLE:
+The salon takes £10,000 in net services
+The professional stock budget is: 7%
+This would show the use they have £700 to spend on professional stock
+If the user spends £500 with company 1 – then they have £200 to spend on other companies to stay on budget. 
+
+There should be a running total at the bottom of the page that shows the user exactly how much they have to spend to stay on budget.
+If they go over budget, then the negative balance should be highlighted in red to make it clear that they are over budget. 
+
+The currency format is default to British pounds £ 
+However the user can change the currency if required. 
+
+The user should have the ability to print out their budget report and a print friendly format. 
+
+All pages should have the option to export to an excel format so that the user can open in an excel spreadsheet. 
+
+
+
+
+ 
+
+
+
+
