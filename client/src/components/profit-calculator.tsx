@@ -278,22 +278,22 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   };
 
   return (
-    <div className="space-y-8">
-      <div className="mb-8">
-        <h2 className="text-4xl font-bold text-slate-900 mb-2">Profit Calculator</h2>
-        <p className="text-xl text-slate-600">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="mb-4 sm:mb-8">
+        <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-2">Profit Calculator</h2>
+        <p className="text-base sm:text-xl text-slate-600">
           Calculate profit margins for individual products with VAT calculations and scenario comparisons
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Input Form */}
         <div className="lg:col-span-2">
           <Card className="print-friendly">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Product Details</CardTitle>
-                <div className="flex space-x-2 no-print">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                <CardTitle className="text-xl sm:text-2xl">Product Details</CardTitle>
+                <div className="flex flex-wrap gap-2 no-print">
                   <Button
                     variant="outline"
                     onClick={handleUndo}
@@ -332,8 +332,8 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="md:col-span-2">
                   <Label htmlFor="productName" className="text-lg font-medium">Product Name</Label>
                   <Input

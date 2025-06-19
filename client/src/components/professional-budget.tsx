@@ -36,6 +36,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const { data: budgetData } = useQuery<{ budget: ProfessionalBudget; suppliers: ProfessionalSupplier[] } | null>({
     queryKey: ["/api/professional-budget"],
@@ -190,23 +191,23 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   return (
-    <div className="space-y-8">
-      <div className="mb-8">
-        <h2 className="text-4xl font-bold text-slate-900 mb-2">Professional Stock Budget</h2>
-        <p className="text-xl text-slate-600">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="mb-4 sm:mb-8">
+        <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-2">Professional Stock Budget</h2>
+        <p className="text-base sm:text-xl text-slate-600">
           Manage your professional stock budget based on service revenue
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Budget Setup */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           <Card className="print-friendly">
             <CardHeader>
-              <CardTitle className="text-2xl">Budget Configuration</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Budget Configuration</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
                     <Label htmlFor="netServices" className="text-lg font-medium">Total Salon Net Services</Label>
@@ -314,7 +315,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
             </CardContent>
           </Card>
 
-          <div className="no-print flex space-x-4">
+          <div className="no-print flex flex-wrap gap-2 sm:gap-4">
             <Button
               onClick={handleUndo}
               variant="outline"
