@@ -113,16 +113,10 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
+    // Save current state before any change
+    saveToUndoStack();
     const newSuppliers = [...suppliers];
     newSuppliers[index] = { ...newSuppliers[index], [field]: value };
-    
-    // Only save to undo stack when completing a supplier (both name and allocation filled)
-    if (field === 'allocation' && value.trim() !== '' && newSuppliers[index].name.trim() !== '') {
-      saveToUndoStack();
-    } else if (field === 'name' && value.trim() !== '' && newSuppliers[index].allocation.trim() !== '') {
-      saveToUndoStack();
-    }
-    
     setSuppliers(newSuppliers);
   };
 
@@ -172,18 +166,14 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   const handleNetServicesChange = (value: string) => {
-    // Only save to undo stack when net services has a meaningful value
-    if (value.trim() !== '' && parseFloat(value) > 0) {
-      saveToUndoStack();
-    }
+    // Save current state before any change
+    saveToUndoStack();
     setNetServices(value);
   };
 
   const handleBudgetPercentChange = (value: string) => {
-    // Save to undo stack when budget percent changes meaningfully
-    if (value !== budgetPercent && value.trim() !== '') {
-      saveToUndoStack();
-    }
+    // Save current state before any change
+    saveToUndoStack();
     setBudgetPercent(value);
     
     // Update user's default professional budget percentage

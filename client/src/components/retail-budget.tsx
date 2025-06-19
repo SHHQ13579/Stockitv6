@@ -85,17 +85,10 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    // Only save to undo stack when completing a supplier (both name and allocation filled)
+    // Save current state before any change
+    saveToUndoStack();
     const updated = [...suppliers];
     updated[index] = { ...updated[index], [field]: value };
-    
-    // Save state when supplier becomes complete
-    if (field === 'allocation' && value.trim() !== '' && updated[index].name.trim() !== '') {
-      saveToUndoStack();
-    } else if (field === 'name' && value.trim() !== '' && updated[index].allocation.trim() !== '') {
-      saveToUndoStack();
-    }
-    
     setSuppliers(updated);
   };
 
@@ -133,18 +126,14 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleNetSalesChange = (value: string) => {
-    // Only save to undo stack when net sales has a meaningful value
-    if (value.trim() !== '' && parseFloat(value) > 0) {
-      saveToUndoStack();
-    }
+    // Save current state before any change
+    saveToUndoStack();
     setNetSales(value);
   };
 
   const handleBudgetPercentChange = (value: string) => {
-    // Save to undo stack when budget percent changes meaningfully
-    if (value !== budgetPercent && value.trim() !== '') {
-      saveToUndoStack();
-    }
+    // Save current state before any change
+    saveToUndoStack();
     setBudgetPercent(value);
   };
 
