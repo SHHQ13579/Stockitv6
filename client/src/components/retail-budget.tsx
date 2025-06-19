@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,11 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     { name: "", allocation: "" }
   ]);
   const [undoStack, setUndoStack] = useState<{ netSales: string; suppliers: Supplier[]; budgetPercent: string }[]>([]);
+
+  // Refs for keyboard navigation
+  const netSalesRef = useRef<HTMLInputElement>(null);
+  const budgetPercentRef = useRef<HTMLInputElement>(null);
+  const supplierRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -94,9 +99,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     setSuppliers(updated);
   };
 
-  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string) => {
+  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing (on blur)
-    const originalValue = suppliers[index]?.[field] || "";
     if (value !== originalValue) {
       saveToUndoStack();
     }
@@ -139,9 +143,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     setNetSales(value);
   };
 
-  const handleNetSalesBlur = (value: string) => {
+  const handleNetSalesBlur = (value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing
-    const originalValue = netSales;
     if (value !== originalValue) {
       saveToUndoStack();
     }
@@ -151,11 +154,24 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     setBudgetPercent(value);
   };
 
-  const handleBudgetPercentBlur = (value: string) => {
+  const handleBudgetPercentBlur = (value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing
-    const originalValue = budgetPercent;
     if (value !== originalValue) {
       saveToUndoStack();
+    }
+  };
+
+  // Store original values when fields get focus
+  const [originalValues, setOriginalValues] = useState<{[key: string]: string}>({});
+
+  const handleFieldFocus = (key: string, value: string) => {
+    setOriginalValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Handle Enter key navigation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, nextRef?: React.RefObject<HTMLInputElement>) => {
+    if (e.key === 'Enter' && nextRef?.current) {
+      nextRef.current.focus();
     }
   };
 
@@ -190,12 +206,15 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     </Tooltip>
                   </div>
                   <Input
+                    ref={netSalesRef}
                     id="netSales"
                     type="number"
                     step="0.01"
                     value={netSales}
                     onChange={(e) => handleNetSalesChange(e.target.value)}
-                    onBlur={(e) => handleNetSalesBlur(e.target.value)}
+                    onFocus={(e) => handleFieldFocus('netSales', e.target.value)}
+                    onBlur={(e) => handleNetSalesBlur(e.target.value, originalValues['netSales'] || '')}
+                    onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
                   />
@@ -214,13 +233,15 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     </Tooltip>
                   </div>
                   <Input
+                    ref={budgetPercentRef}
                     id="budgetPercent"
                     type="number"
                     step="0.1"
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
-                    onBlur={(e) => handleBudgetPercentBlur(e.target.value)}
+                    onFocus={(e) => handleFieldFocus('budgetPercent', e.target.value)}
+                    onBlur={(e) => handleBudgetPercentBlur(e.target.value, originalValues['budgetPercent'] || '')}
                     placeholder="65.0"
                     className="text-xl h-12"
                   />
@@ -262,10 +283,18 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     <div>
                       <Label htmlFor={`supplier-name-${index}`} className="text-lg font-medium">Supplier Name</Label>
                       <Input
+                        ref={(el) => supplierRefs.current[`name-${index}`] = el}
                         id={`supplier-name-${index}`}
                         value={supplier.name}
                         onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value)}
+                        onFocus={(e) => handleFieldFocus(`supplier-name-${index}`, e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value, originalValues[`supplier-name-${index}`] || '')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const allocationRef = supplierRefs.current[`allocation-${index}`];
+                            if (allocationRef) allocationRef.focus();
+                          }
+                        }}
                         placeholder="Enter supplier name"
                         className="text-xl h-12"
                       />
@@ -273,12 +302,23 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     <div>
                       <Label htmlFor={`supplier-allocation-${index}`} className="text-lg font-medium">Allocation Amount</Label>
                       <Input
+                        ref={(el) => supplierRefs.current[`allocation-${index}`] = el}
                         id={`supplier-allocation-${index}`}
                         type="number"
                         step="0.01"
                         value={supplier.allocation}
                         onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value)}
+                        onFocus={(e) => handleFieldFocus(`supplier-allocation-${index}`, e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value, originalValues[`supplier-allocation-${index}`] || '')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const nextIndex = index + 1;
+                            if (nextIndex < suppliers.length) {
+                              const nextNameRef = supplierRefs.current[`name-${nextIndex}`];
+                              if (nextNameRef) nextNameRef.focus();
+                            }
+                          }
+                        }}
                         placeholder="0.00"
                         className="text-xl h-12"
                       />

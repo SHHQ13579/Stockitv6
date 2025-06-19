@@ -37,6 +37,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   // Refs for keyboard navigation
   const netServicesRef = useRef<HTMLInputElement>(null);
   const budgetPercentRef = useRef<HTMLInputElement>(null);
+  const supplierRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -122,9 +123,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     setSuppliers(newSuppliers);
   };
 
-  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string) => {
+  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing (on blur)
-    const originalValue = suppliers[index]?.[field] || "";
     if (value !== originalValue) {
       saveToUndoStack();
     }
@@ -179,9 +179,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     setNetServices(value);
   };
 
-  const handleNetServicesBlur = (value: string) => {
+  const handleNetServicesBlur = (value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing
-    const originalValue = netServices;
     if (value !== originalValue) {
       saveToUndoStack();
     }
@@ -191,9 +190,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     setBudgetPercent(value);
   };
 
-  const handleBudgetPercentBlur = (value: string) => {
+  const handleBudgetPercentBlur = (value: string, originalValue: string) => {
     // Only save to undo stack when user finishes editing
-    const originalValue = budgetPercent;
     if (value !== originalValue) {
       saveToUndoStack();
     }
@@ -202,6 +200,13 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     if (value !== user?.defaultProfessionalBudgetPercent) {
       updateProfessionalBudgetPercentMutation.mutate(value);
     }
+  };
+
+  // Store original values when fields get focus
+  const [originalValues, setOriginalValues] = useState<{[key: string]: string}>({});
+
+  const handleFieldFocus = (key: string, value: string) => {
+    setOriginalValues(prev => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -241,7 +246,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     step="0.01"
                     value={netServices}
                     onChange={(e) => handleNetServicesChange(e.target.value)}
-                    onBlur={(e) => handleNetServicesBlur(e.target.value)}
+                    onFocus={(e) => handleFieldFocus('netServices', e.target.value)}
+                    onBlur={(e) => handleNetServicesBlur(e.target.value, originalValues['netServices'] || '')}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -268,7 +274,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
-                    onBlur={(e) => handleBudgetPercentBlur(e.target.value)}
+                    onFocus={(e) => handleFieldFocus('budgetPercent', e.target.value)}
+                    onBlur={(e) => handleBudgetPercentBlur(e.target.value, originalValues['budgetPercent'] || '')}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />
@@ -310,10 +317,18 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     <div>
                       <Label htmlFor={`supplier-name-${index}`} className="text-lg font-medium">Supplier Name</Label>
                       <Input
+                        ref={(el) => supplierRefs.current[`name-${index}`] = el}
                         id={`supplier-name-${index}`}
                         value={supplier.name}
                         onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value)}
+                        onFocus={(e) => handleFieldFocus(`supplier-name-${index}`, e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value, originalValues[`supplier-name-${index}`] || '')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const allocationRef = supplierRefs.current[`allocation-${index}`];
+                            if (allocationRef) allocationRef.focus();
+                          }
+                        }}
                         placeholder="Enter supplier name"
                         className="text-xl h-12"
                       />
@@ -321,12 +336,23 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     <div>
                       <Label htmlFor={`supplier-allocation-${index}`} className="text-lg font-medium">Allocation Amount</Label>
                       <Input
+                        ref={(el) => supplierRefs.current[`allocation-${index}`] = el}
                         id={`supplier-allocation-${index}`}
                         type="number"
                         step="0.01"
                         value={supplier.allocation}
                         onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value)}
+                        onFocus={(e) => handleFieldFocus(`supplier-allocation-${index}`, e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value, originalValues[`supplier-allocation-${index}`] || '')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const nextIndex = index + 1;
+                            if (nextIndex < suppliers.length) {
+                              const nextNameRef = supplierRefs.current[`name-${nextIndex}`];
+                              if (nextNameRef) nextNameRef.focus();
+                            }
+                          }
+                        }}
                         placeholder="0.00"
                         className="text-xl h-12"
                       />
