@@ -97,11 +97,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     }
   };
 
-  const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    const updated = [...suppliers];
-    updated[index] = { ...updated[index], [field]: value };
-    setSuppliers(updated);
-  };
+
 
   const handleSave = () => {
     const budgetData = {
@@ -124,8 +120,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     saveToUndoStack();
     setNetSales("");
     setSuppliers([{ name: "", allocation: "" }]);
-    // Reset field values tracking after clear
-    setFieldValues({});
+    setShouldSaveUndo(true);
   };
 
   const handleUndo = () => {
@@ -138,24 +133,38 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     }
   };
 
-  // Track original values to only save undo when value actually changes
-  const [fieldValues, setFieldValues] = useState<{[key: string]: string}>({});
-
-  // Store the initial state when user starts editing
-  const handleFieldFocus = (fieldKey: string, currentValue: string) => {
-    // Only save to undo stack if this field hasn't been tracked yet or value changed
-    if (!fieldValues[fieldKey] || fieldValues[fieldKey] !== currentValue) {
-      saveToUndoStack();
-      setFieldValues(prev => ({ ...prev, [fieldKey]: currentValue }));
-    }
-  };
+  // Track if we need to save undo on next change
+  const [shouldSaveUndo, setShouldSaveUndo] = useState(true);
 
   const handleNetSalesChange = (value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
     setNetSales(value);
   };
 
   const handleBudgetPercentChange = (value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
     setBudgetPercent(value);
+  };
+
+  const handleSupplierChange = (index: number, field: keyof Supplier, value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
+    const updated = [...suppliers];
+    updated[index] = { ...updated[index], [field]: value };
+    setSuppliers(updated);
+  };
+
+  // Reset undo flag when fields lose focus or on key navigation
+  const handleFieldBlur = () => {
+    setShouldSaveUndo(true);
   };
 
   // Handle Enter key navigation
@@ -202,7 +211,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     step="0.01"
                     value={netSales}
                     onChange={(e) => handleNetSalesChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('netSales', e.target.value)}
+                    onBlur={handleFieldBlur}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -229,7 +238,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('budgetPercent', e.target.value)}
+                    onBlur={handleFieldBlur}
                     placeholder="65.0"
                     className="text-xl h-12"
                   />
@@ -274,8 +283,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                         ref={(el) => supplierRefs.current[`name-${index}`] = el}
                         id={`supplier-name-${index}`}
                         value={supplier.name}
-                        onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-name-${index}`, e.target.value)}
+                        onChange={(e) => handleSupplierChange(index, "name", e.target.value)}
+                        onBlur={handleFieldBlur}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const allocationRef = supplierRefs.current[`allocation-${index}`];
@@ -294,8 +303,8 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                         type="number"
                         step="0.01"
                         value={supplier.allocation}
-                        onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-allocation-${index}`, e.target.value)}
+                        onChange={(e) => handleSupplierChange(index, "allocation", e.target.value)}
+                        onBlur={handleFieldBlur}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const nextIndex = index + 1;

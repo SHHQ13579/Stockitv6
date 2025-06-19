@@ -121,11 +121,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     }]);
   };
 
-  const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    const newSuppliers = [...suppliers];
-    newSuppliers[index] = { ...newSuppliers[index], [field]: value };
-    setSuppliers(newSuppliers);
-  };
+
 
   const addSupplier = () => {
     saveToUndoStack();
@@ -160,8 +156,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     saveToUndoStack();
     setNetServices("");
     setSuppliers([{ name: "", allocation: "" }]);
-    // Reset field values tracking after clear
-    setFieldValues({});
+    setShouldSaveUndo(true);
   };
 
   const handleUndo = () => {
@@ -174,29 +169,43 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     }
   };
 
-  // Track original values to only save undo when value actually changes
-  const [fieldValues, setFieldValues] = useState<{[key: string]: string}>({});
-
-  // Store the initial state when user starts editing
-  const handleFieldFocus = (fieldKey: string, currentValue: string) => {
-    // Only save to undo stack if this field hasn't been tracked yet or value changed
-    if (!fieldValues[fieldKey] || fieldValues[fieldKey] !== currentValue) {
-      saveToUndoStack();
-      setFieldValues(prev => ({ ...prev, [fieldKey]: currentValue }));
-    }
-  };
+  // Track if we need to save undo on next change
+  const [shouldSaveUndo, setShouldSaveUndo] = useState(true);
 
   const handleNetServicesChange = (value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
     setNetServices(value);
   };
 
   const handleBudgetPercentChange = (value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
     setBudgetPercent(value);
     
     // Update user's default professional budget percentage
     if (value !== user?.defaultProfessionalBudgetPercent) {
       updateProfessionalBudgetPercentMutation.mutate(value);
     }
+  };
+
+  const handleSupplierChange = (index: number, field: keyof Supplier, value: string) => {
+    if (shouldSaveUndo) {
+      saveToUndoStack();
+      setShouldSaveUndo(false);
+    }
+    const newSuppliers = [...suppliers];
+    newSuppliers[index] = { ...newSuppliers[index], [field]: value };
+    setSuppliers(newSuppliers);
+  };
+
+  // Reset undo flag when fields lose focus or on key navigation
+  const handleFieldBlur = () => {
+    setShouldSaveUndo(true);
   };
 
   return (
@@ -236,7 +245,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     step="0.01"
                     value={netServices}
                     onChange={(e) => handleNetServicesChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('netServices', e.target.value)}
+                    onBlur={handleFieldBlur}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -263,7 +272,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('budgetPercent', e.target.value)}
+                    onBlur={handleFieldBlur}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />
@@ -308,8 +317,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         ref={(el) => supplierRefs.current[`name-${index}`] = el}
                         id={`supplier-name-${index}`}
                         value={supplier.name}
-                        onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-name-${index}`, e.target.value)}
+                        onChange={(e) => handleSupplierChange(index, "name", e.target.value)}
+                        onBlur={handleFieldBlur}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const allocationRef = supplierRefs.current[`allocation-${index}`];
@@ -328,8 +337,8 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         type="number"
                         step="0.01"
                         value={supplier.allocation}
-                        onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-allocation-${index}`, e.target.value)}
+                        onChange={(e) => handleSupplierChange(index, "allocation", e.target.value)}
+                        onBlur={handleFieldBlur}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const nextIndex = index + 1;
