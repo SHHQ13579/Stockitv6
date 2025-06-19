@@ -31,6 +31,7 @@ interface ProfitCalculation {
     afterDiscount: number;
     afterRetro: number;
     usageAdjustment: number;
+    commissionAmount: number;
   };
 }
 
@@ -166,13 +167,25 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
       salePrice = salePrice / (1 + vatPercent / 100);
     }
 
+    // Step 1: Apply discount to list price
     const afterDiscount = listPrice * (1 - discount / 100);
+    
+    // Step 2: Apply retro discount
     const afterRetro = afterDiscount * (1 - retroDiscount / 100);
+    
+    // Step 3: Add usage percentage as additional cost
     const usageAdjustment = afterRetro * (usage / 100);
-    const realCost = afterRetro + usageAdjustment;
+    const costAfterUsage = afterRetro + usageAdjustment;
+    
+    // Step 4: Calculate commission as percentage of NET sale price
+    const commissionAmount = salePrice * (commission / 100);
+    
+    // Step 5: Total real cost includes commission
+    const realCost = costAfterUsage + commissionAmount;
 
-    const netProfit = salePrice - realCost - commission;
-    const profitMargin = salePrice > 0 ? (netProfit / salePrice) * 100 : 0;
+    // Step 6: Calculate profit and margin
+    const netProfit = salePrice - realCost;
+    const profitMargin = realCost > 0 ? (netProfit / realCost) * 100 : 0;
 
     setCalculation({
       realCost,
@@ -184,6 +197,7 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
         afterDiscount,
         afterRetro,
         usageAdjustment,
+        commissionAmount,
       },
     });
   };
@@ -485,13 +499,13 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="commission" className="text-lg font-medium">Commission</Label>
+                    <Label htmlFor="commission" className="text-lg font-medium">Commission (%)</Label>
                     <Tooltip>
                       <TooltipTrigger>
                         <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="text-base">Commission paid to team member for selling this product</p>
+                        <p className="text-base">Commission percentage of net sale price paid to team member</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -499,10 +513,11 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
                     ref={commissionRef}
                     id="commission"
                     type="number"
-                    step="0.01"
+                    step="0.1"
+                    max="100"
                     value={formData.commission}
                     onChange={(e) => handleInputChange("commission", e.target.value)}
-                    placeholder="0.00"
+                    placeholder="10.0"
                     className="text-xl h-12"
                   />
                 </div>
@@ -619,7 +634,19 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
                       <div className="flex justify-between">
                         <span className="text-slate-600">Usage Adjustment:</span>
                         <span className="font-medium">
-                          {formatCurrency(calculation.breakdown.usageAdjustment, currency)}
+                          +{formatCurrency(calculation.breakdown.usageAdjustment, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Commission Amount:</span>
+                        <span className="font-medium">
+                          +{formatCurrency(calculation.breakdown.commissionAmount, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-slate-200">
+                        <span className="text-slate-700 font-medium">Total Cost:</span>
+                        <span className="font-bold">
+                          {formatCurrency(calculation.realCost, currency)}
                         </span>
                       </div>
                     </div>
