@@ -275,6 +275,13 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
                     onBlur={handleFieldBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        // Focus on first supplier name field
+                        const firstSupplierRef = supplierRefs.current['name-0'];
+                        if (firstSupplierRef) firstSupplierRef.focus();
+                      }
+                    }}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />
