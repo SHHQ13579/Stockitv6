@@ -78,7 +78,11 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const utilization = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
   const saveToUndoStack = () => {
-    setUndoStack(prev => [...prev.slice(-9), { netSales, suppliers, budgetPercent }]); // Keep last 10 states
+    setUndoStack(prev => [...prev.slice(-9), { 
+      netSales, 
+      suppliers: suppliers.map(s => ({ ...s })), // Deep copy
+      budgetPercent 
+    }]);
   };
 
   const addSupplier = () => {
@@ -132,10 +136,10 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const previousState = undoStack[undoStack.length - 1];
-      setUndoStack(prev => prev.slice(0, -1));
       setNetSales(previousState.netSales);
-      setSuppliers(previousState.suppliers);
+      setSuppliers(previousState.suppliers.map(s => ({ ...s })));
       setBudgetPercent(previousState.budgetPercent);
+      setUndoStack(prev => prev.slice(0, -1));
     }
   };
 

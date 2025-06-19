@@ -114,7 +114,11 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   const utilization = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
   const saveToUndoStack = () => {
-    setUndoStack(prev => [...prev.slice(-9), { netServices, suppliers, budgetPercent }]); // Keep last 10 states
+    setUndoStack(prev => [...prev.slice(-9), { 
+      netServices, 
+      suppliers: suppliers.map(s => ({ ...s })), // Deep copy
+      budgetPercent 
+    }]);
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
@@ -168,10 +172,10 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   const handleUndo = () => {
     if (undoStack.length > 0) {
       const previousState = undoStack[undoStack.length - 1];
-      setUndoStack(prev => prev.slice(0, -1));
       setNetServices(previousState.netServices);
-      setSuppliers(previousState.suppliers);
+      setSuppliers(previousState.suppliers.map(s => ({ ...s })));
       setBudgetPercent(previousState.budgetPercent);
+      setUndoStack(prev => prev.slice(0, -1));
     }
   };
 
