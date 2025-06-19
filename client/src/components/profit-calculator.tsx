@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import type { ProfitScenario, InsertProfitScenario } from "@shared/schema";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import type { ProfitScenario, InsertProfitScenario, User } from "@shared/schema";
 
 interface ProfitCalculatorProps {
   currency: string;
+  user?: User;
 }
 
 interface ProfitCalculation {
@@ -32,11 +34,12 @@ interface ProfitCalculation {
   };
 }
 
-export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
+export default function ProfitCalculator({ currency, user }: ProfitCalculatorProps) {
   const [formData, setFormData] = useState({
     productName: "",
     rrp: "",
     vatRegistered: false,
+    vatPercent: user?.defaultVatPercent || "20.0",
     listPrice: "",
     discount: "",
     retroDiscount: "",
@@ -46,12 +49,47 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
   const [scenarioName, setScenarioName] = useState("");
   const [calculation, setCalculation] = useState<ProfitCalculation | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  
+  // Refs for keyboard navigation
+  const productNameRef = useRef<HTMLInputElement>(null);
+  const rrpRef = useRef<HTMLInputElement>(null);
+  const vatPercentRef = useRef<HTMLInputElement>(null);
+  const listPriceRef = useRef<HTMLInputElement>(null);
+  const discountRef = useRef<HTMLInputElement>(null);
+  const retroDiscountRef = useRef<HTMLInputElement>(null);
+  const usageRef = useRef<HTMLInputElement>(null);
+  const commissionRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: scenarios = [] } = useQuery<ProfitScenario[]>({
     queryKey: ["/api/profit-scenarios"],
+    retry: false,
+  });
+
+  const updateVatMutation = useMutation({
+    mutationFn: async (vatPercent: string) => {
+      const response = await apiRequest("PATCH", "/api/auth/user/vat", { vatPercent });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Default VAT percentage updated" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({ title: "Error", description: "Failed to update VAT percentage", variant: "destructive" });
+    },
   });
 
   const saveScenarioMutation = useMutation({
@@ -65,7 +103,18 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
       setSaveDialogOpen(false);
       setScenarioName("");
     },
-    onError: () => {
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
       toast({ title: "Error", description: "Failed to save scenario", variant: "destructive" });
     },
   });
@@ -78,7 +127,18 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/profit-scenarios"] });
       toast({ title: "Success", description: "Scenario deleted successfully" });
     },
-    onError: () => {
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
       toast({ title: "Error", description: "Failed to delete scenario", variant: "destructive" });
     },
   });
@@ -88,16 +148,22 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
   }, [formData]);
 
   const calculateProfit = () => {
-    const rrp = parseFloat(formData.rrp) || 0;
+    let salePrice = parseFloat(formData.rrp) || 0;
     const listPrice = parseFloat(formData.listPrice) || 0;
     const discount = parseFloat(formData.discount) || 0;
     const retroDiscount = parseFloat(formData.retroDiscount) || 0;
     const usage = parseFloat(formData.usage) || 0;
     const commission = parseFloat(formData.commission) || 0;
+    const vatPercent = parseFloat(formData.vatPercent) || 0;
 
-    if (listPrice === 0 && rrp === 0) {
+    if (listPrice === 0 && salePrice === 0) {
       setCalculation(null);
       return;
+    }
+
+    // If VAT registered, calculate net price from RRP
+    if (formData.vatRegistered && salePrice > 0) {
+      salePrice = salePrice / (1 + vatPercent / 100);
     }
 
     const afterDiscount = listPrice * (1 - discount / 100);
@@ -105,12 +171,12 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
     const usageAdjustment = afterRetro * (usage / 100);
     const realCost = afterRetro + usageAdjustment;
 
-    const netProfit = rrp - realCost - commission;
-    const profitMargin = rrp > 0 ? (netProfit / rrp) * 100 : 0;
+    const netProfit = salePrice - realCost - commission;
+    const profitMargin = salePrice > 0 ? (netProfit / salePrice) * 100 : 0;
 
     setCalculation({
       realCost,
-      salePrice: rrp,
+      salePrice,
       netProfit,
       profitMargin,
       breakdown: {
@@ -124,6 +190,18 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Update default VAT percentage when changed
+    if (field === "vatPercent" && typeof value === "string" && value !== user?.defaultVatPercent) {
+      updateVatMutation.mutate(value);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, nextRef?: React.RefObject<HTMLInputElement>) => {
+    if (e.key === 'Enter' && nextRef?.current) {
+      e.preventDefault();
+      nextRef.current.focus();
+    }
   };
 
   const handleSaveScenario = () => {
@@ -142,6 +220,7 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
       productName: formData.productName,
       rrp: formData.rrp,
       vatRegistered: formData.vatRegistered,
+      vatPercent: formData.vatPercent || "20.0",
       listPrice: formData.listPrice,
       discount: formData.discount || "0",
       retroDiscount: formData.retroDiscount || "0",
@@ -158,20 +237,21 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
       productName: scenario.productName,
       rrp: scenario.rrp,
       vatRegistered: scenario.vatRegistered,
+      vatPercent: scenario.vatPercent || "20.0",
       listPrice: scenario.listPrice,
-      discount: scenario.discount,
-      retroDiscount: scenario.retroDiscount,
-      usage: scenario.usage,
-      commission: scenario.commission,
+      discount: scenario.discount || "0",
+      retroDiscount: scenario.retroDiscount || "0",
+      usage: scenario.usage || "0",
+      commission: scenario.commission || "0",
     });
   };
 
   return (
     <div className="space-y-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Profit Calculator</h2>
-        <p className="text-lg text-slate-600">
-          Calculate profit margins for individual products and compare scenarios
+        <h2 className="text-4xl font-bold text-slate-900 mb-2">Profit Calculator</h2>
+        <p className="text-xl text-slate-600">
+          Calculate profit margins for individual products with VAT calculations and scenario comparisons
         </p>
       </div>
 
@@ -216,54 +296,88 @@ export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <Label htmlFor="productName">Product Name</Label>
+                  <Label htmlFor="productName" className="text-lg font-medium">Product Name</Label>
                   <Input
+                    ref={productNameRef}
                     id="productName"
                     value={formData.productName}
                     onChange={(e) => handleInputChange("productName", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, rrpRef)}
                     placeholder="Enter product name"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <Label htmlFor="rrp">RRP (Retail Price)</Label>
+                    <Label htmlFor="rrp" className="text-lg font-medium">RRP (Retail Price)</Label>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info size={16} className="text-slate-400" />
+                        <Info size={18} className="text-slate-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>The retail price you will sell this product for</p>
+                        <p className="text-base">The retail price you will sell this product for (including VAT if applicable)</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <Input
+                    ref={rrpRef}
                     id="rrp"
                     type="number"
                     step="0.01"
                     value={formData.rrp}
                     onChange={(e) => handleInputChange("rrp", e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, formData.vatRegistered ? vatPercentRef : listPriceRef)}
                     placeholder="0.00"
-                    className="text-lg"
+                    className="text-xl h-12"
                   />
                 </div>
 
-                <div className="flex items-center space-x-3 pt-8">
-                  <Checkbox
-                    id="vatRegistered"
-                    checked={formData.vatRegistered}
-                    onCheckedChange={(checked) => handleInputChange("vatRegistered", !!checked)}
-                  />
-                  <Label htmlFor="vatRegistered">VAT Registered Business</Label>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info size={16} className="text-slate-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Check if your business is VAT registered</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="vatRegistered"
+                      checked={formData.vatRegistered}
+                      onCheckedChange={(checked) => handleInputChange("vatRegistered", !!checked)}
+                    />
+                    <Label htmlFor="vatRegistered" className="text-lg font-medium">VAT Registered Business</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info size={18} className="text-slate-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-base">Check if your business is VAT registered</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  
+                  {formData.vatRegistered && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Label htmlFor="vatPercent" className="text-lg font-medium">VAT Percentage (%)</Label>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info size={18} className="text-slate-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-base">VAT rate - will be saved as your default for future calculations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        ref={vatPercentRef}
+                        id="vatPercent"
+                        type="number"
+                        step="0.1"
+                        max="100"
+                        value={formData.vatPercent}
+                        onChange={(e) => handleInputChange("vatPercent", e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, listPriceRef)}
+                        placeholder="20.0"
+                        className="text-xl h-12"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
