@@ -186,11 +186,6 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
       setShouldSaveUndo(false);
     }
     setBudgetPercent(value);
-    
-    // Update user's default professional budget percentage
-    if (value !== user?.defaultProfessionalBudgetPercent) {
-      updateProfessionalBudgetPercentMutation.mutate(value);
-    }
   };
 
   const handleSupplierChange = (index: number, field: keyof Supplier, value: string) => {
