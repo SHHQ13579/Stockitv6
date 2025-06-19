@@ -118,6 +118,9 @@ The application implements an abstraction layer for data storage with both in-me
 ✓ Tracks last 10 actions for each page including form changes, supplier additions/removals, and clear actions
 ✓ Undo button disabled when no actions available to undo
 ✓ Preserves user workflow and prevents accidental data loss
+✓ Fixed undo system to capture state only on first keystroke of editing session
+✓ Enter key navigation no longer creates duplicate undo states
+✓ Single undo click restores previous complete state (e.g., £500→£600 back to £500)
 
 ### Mobile App Version (June 19, 2025)
 ✓ Implemented responsive mobile-first design for on-the-go access
@@ -129,7 +132,8 @@ The application implements an abstraction layer for data storage with both in-me
 ✓ Prevents zoom on iOS with proper font sizing for inputs
 
 ## Changelog
-- June 19, 2025. Initial setup and major enhancements
+- June 19, 2025: Initial setup and major enhancements
+- June 19, 2025: Fixed undo functionality to work correctly with Enter key navigation
 
 ## User Preferences
 
