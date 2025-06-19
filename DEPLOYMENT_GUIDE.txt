@@ -1,0 +1,184 @@
+STOCKIT - SALON STOCK MANAGEMENT SYSTEM
+DEPLOYMENT GUIDE FOR RENDER
+=====================================
+
+OVERVIEW
+--------
+Stockit is a full-stack TypeScript application built with React (frontend) and Express.js (backend).
+It uses PostgreSQL for data storage and includes user authentication via Replit OAuth.
+
+SYSTEM REQUIREMENTS
+------------------
+- Node.js 18+ 
+- PostgreSQL database
+- Environment variables for authentication and database
+
+PROJECT STRUCTURE
+-----------------
+/client/          - React frontend (Vite build)
+/server/          - Express.js backend
+/shared/          - Shared TypeScript types and schemas
+package.json      - Root package.json with build scripts
+drizzle.config.ts - Database configuration
+vite.config.ts    - Frontend build configuration
+
+KEY FILES FOR DEPLOYMENT
+------------------------
+1. package.json - Contains all dependencies and build scripts
+2. server/index.ts - Main server entry point
+3. client/src/ - Frontend React application
+4. shared/schema.ts - Database schema definitions
+5. drizzle.config.ts - Database migrations configuration
+
+BUILD PROCESS
+-------------
+The application uses a two-stage build process:
+
+1. Frontend Build (Vite):
+   - Builds React app to /dist/client
+   - Optimizes assets and creates production bundle
+   
+2. Backend Build (ESBuild):
+   - Compiles TypeScript server to /dist/server.js
+   - Creates single executable file
+
+BUILD COMMANDS
+--------------
+npm install              # Install all dependencies
+npm run build           # Build both frontend and backend
+npm run start           # Start production server
+npm run dev             # Development mode (not for production)
+npm run db:push         # Push database schema (Drizzle)
+
+ENVIRONMENT VARIABLES REQUIRED
+------------------------------
+DATABASE_URL=postgres://username:password@host:port/database
+PGHOST=your-postgres-host
+PGPORT=5432
+PGUSER=your-postgres-user
+PGPASSWORD=your-postgres-password
+PGDATABASE=your-database-name
+SESSION_SECRET=your-session-secret-key
+REPL_ID=your-replit-app-id (for OAuth)
+ISSUER_URL=https://replit.com/oidc
+REPLIT_DOMAINS=your-domain.render.com
+
+PORT=5000 (or PORT provided by Render)
+
+DEPLOYMENT STEPS FOR RENDER
+---------------------------
+
+1. CREATE NEW WEB SERVICE
+   - Connect your GitHub repository
+   - Choose "Node.js" as runtime
+   - Set build command: npm run build
+   - Set start command: npm run start
+   - Set environment: Node.js 18
+
+2. CONFIGURE ENVIRONMENT VARIABLES
+   - Add all required environment variables listed above
+   - DATABASE_URL should point to your PostgreSQL instance
+   - REPLIT_DOMAINS should be your Render domain
+
+3. DATABASE SETUP
+   - Create PostgreSQL database (Render PostgreSQL or external)
+   - Run database migrations: npm run db:push
+   - Database tables will be created automatically
+
+4. DOMAIN CONFIGURATION
+   - Update REPLIT_DOMAINS with your final Render domain
+   - Configure OAuth redirect URLs if needed
+
+5. DEPLOY
+   - Render will automatically build and deploy
+   - Application will be available on your assigned domain
+
+RENDER CONFIGURATION
+-------------------
+Build Command: npm run build
+Start Command: npm run start
+Environment: Node.js 18
+Auto-Deploy: Yes (recommended)
+
+HEALTH CHECK
+-----------
+The application serves on port 5000 by default.
+Health check endpoint: / (returns the React app)
+API endpoints start with /api/
+
+DATABASE NOTES
+--------------
+- Uses Drizzle ORM for type-safe database operations
+- Schema is defined in shared/schema.ts
+- Migrations are handled by npm run db:push
+- Supports PostgreSQL with connection pooling
+
+AUTHENTICATION
+--------------
+- Uses Replit OAuth for user authentication
+- Requires REPL_ID and proper domain configuration
+- Sessions stored in PostgreSQL with express-session
+- Users are automatically created on first login
+
+FEATURES INCLUDED
+----------------
+- Profit Calculator with VAT calculations
+- Retail Budget Manager with supplier allocations
+- Professional Stock Budget tracking
+- Multi-currency support (GBP, USD, EUR)
+- Mobile-responsive design
+- Interactive onboarding tutorial
+- Excel export functionality
+- Undo/redo functionality
+- User authentication and data persistence
+
+STATIC FILES
+-----------
+Frontend assets are served from /dist/client
+All routes are handled by React Router (client-side routing)
+API routes are prefixed with /api/
+
+TROUBLESHOOTING
+--------------
+1. Build fails: Check Node.js version (requires 18+)
+2. Database connection: Verify DATABASE_URL format
+3. OAuth issues: Confirm REPL_ID and REPLIT_DOMAINS
+4. Missing dependencies: Run npm install
+5. TypeScript errors: Check shared types in /shared/
+
+SECURITY CONSIDERATIONS
+----------------------
+- All API routes require authentication except login
+- Session cookies are secure and HTTP-only
+- Database queries use parameterized statements
+- Environment variables store sensitive data
+- CORS configured for your domain only
+
+MONITORING
+----------
+- Application logs are available in Render dashboard
+- Database connection status logged on startup
+- Error handling includes user-friendly messages
+- Unauthorized access redirects to login
+
+BACKUP & MAINTENANCE
+-------------------
+- Database backups handled by your PostgreSQL provider
+- Application state is stored in database only
+- No local file storage used
+- Updates can be deployed via Git push
+
+PERFORMANCE NOTES
+----------------
+- Frontend assets are optimized and compressed
+- Database uses connection pooling
+- Static files served with proper caching headers
+- Mobile-optimized responsive design
+
+CONTACT & SUPPORT
+----------------
+For technical issues or questions about deployment,
+refer to this documentation or the project README.
+
+Last Updated: June 19, 2025
+Version: 1.0.0

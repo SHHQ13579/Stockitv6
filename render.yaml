@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: stockit
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stockit-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: REPL_ID
+        value: your-replit-app-id
+      - key: ISSUER_URL
+        value: https://replit.com/oidc
+      - key: REPLIT_DOMAINS
+        value: your-app-name.onrender.com
+
+databases:
+  - name: stockit-db
+    plan: starter
