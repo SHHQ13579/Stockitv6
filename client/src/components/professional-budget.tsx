@@ -203,6 +203,13 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     setShouldSaveUndo(true);
   };
 
+  // Handle Enter key navigation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, nextRef?: React.RefObject<HTMLInputElement>) => {
+    if (e.key === 'Enter' && nextRef?.current) {
+      nextRef.current.focus();
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-8">
       <div className="mb-4 sm:mb-8">
