@@ -127,13 +127,6 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     setSuppliers(newSuppliers);
   };
 
-  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing (on blur) and value changed
-    if (value !== originalValue && originalValue !== undefined) {
-      saveToUndoStack();
-    }
-  };
-
   const addSupplier = () => {
     saveToUndoStack();
     setSuppliers([...suppliers, { name: "", allocation: "" }]);
@@ -179,39 +172,23 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     }
   };
 
+  // Store the initial state when user starts editing
+  const handleFieldFocus = (fieldKey: string) => {
+    // Save current state to undo stack when user starts editing
+    saveToUndoStack();
+  };
+
   const handleNetServicesChange = (value: string) => {
     setNetServices(value);
   };
 
-  const handleNetServicesBlur = (value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing and value changed
-    if (value !== originalValue && originalValue !== undefined) {
-      saveToUndoStack();
-    }
-  };
-
   const handleBudgetPercentChange = (value: string) => {
     setBudgetPercent(value);
-  };
-
-  const handleBudgetPercentBlur = (value: string, originalValue: string) => {
-    // Only save to undo stack when user finishes editing and value changed
-    if (value !== originalValue && originalValue !== undefined) {
-      saveToUndoStack();
-    }
     
     // Update user's default professional budget percentage
     if (value !== user?.defaultProfessionalBudgetPercent) {
       updateProfessionalBudgetPercentMutation.mutate(value);
     }
-  };
-
-  // Store original values when fields get focus
-  const [originalValues, setOriginalValues] = useState<{[key: string]: string}>({});
-
-  const handleFieldFocus = (key: string, value: string) => {
-    // Only set original value if it's not already set (to capture the first focus)
-    setOriginalValues(prev => prev[key] !== undefined ? prev : { ...prev, [key]: value });
   };
 
   return (
@@ -251,8 +228,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     step="0.01"
                     value={netServices}
                     onChange={(e) => handleNetServicesChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('netServices', e.target.value)}
-                    onBlur={(e) => handleNetServicesBlur(e.target.value, originalValues['netServices'] || '')}
+                    onFocus={() => handleFieldFocus('netServices')}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -279,8 +255,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
-                    onFocus={(e) => handleFieldFocus('budgetPercent', e.target.value)}
-                    onBlur={(e) => handleBudgetPercentBlur(e.target.value, originalValues['budgetPercent'] || '')}
+                    onFocus={() => handleFieldFocus('budgetPercent')}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />
@@ -326,8 +301,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         id={`supplier-name-${index}`}
                         value={supplier.name}
                         onChange={(e) => updateSupplier(index, "name", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-name-${index}`, e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value, originalValues[`supplier-name-${index}`] || '')}
+                        onFocus={() => handleFieldFocus(`supplier-name-${index}`)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const allocationRef = supplierRefs.current[`allocation-${index}`];
@@ -347,8 +321,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         step="0.01"
                         value={supplier.allocation}
                         onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
-                        onFocus={(e) => handleFieldFocus(`supplier-allocation-${index}`, e.target.value)}
-                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value, originalValues[`supplier-allocation-${index}`] || '')}
+                        onFocus={() => handleFieldFocus(`supplier-allocation-${index}`)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const nextIndex = index + 1;
