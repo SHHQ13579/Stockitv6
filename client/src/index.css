@@ -59,6 +59,21 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    font-size: 16px;
+  }
+
+  /* Larger fonts for better readability on large screens */
+  .large-text {
+    font-size: 1.25rem;
+  }
+
+  .extra-large-text {
+    font-size: 1.5rem;
+  }
+
+  .display-text {
+    font-size: 2rem;
+    font-weight: 600;
   }
 }
 

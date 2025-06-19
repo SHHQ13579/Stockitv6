@@ -124,9 +124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Excel export endpoints
-  app.post("/api/export/profit-scenarios", async (req, res) => {
+  app.post("/api/export/profit-scenarios", isAuthenticated, async (req: any, res) => {
     try {
-      const scenarios = await storage.getProfitScenarios();
+      const userId = req.user.claims.sub;
+      const scenarios = await storage.getProfitScenarios(userId);
       const workbook = XLSX.utils.book_new();
       
       const worksheetData = scenarios.map(scenario => ({
@@ -134,6 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Product Name': scenario.productName,
         'RRP': parseFloat(scenario.rrp),
         'VAT Registered': scenario.vatRegistered ? 'Yes' : 'No',
+        'VAT %': scenario.vatPercent ? parseFloat(scenario.vatPercent) : 0,
         'List Price': parseFloat(scenario.listPrice),
         'Discount %': parseFloat(scenario.discount),
         'Retro Discount %': parseFloat(scenario.retroDiscount),
@@ -156,9 +158,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/export/retail-budget", async (req, res) => {
+  app.post("/api/export/retail-budget", isAuthenticated, async (req: any, res) => {
     try {
-      const budget = await storage.getLatestRetailBudget();
+      const userId = req.user.claims.sub;
+      const budget = await storage.getLatestRetailBudget(userId);
       if (!budget) {
         return res.status(404).json({ error: "No retail budget found" });
       }
@@ -195,9 +198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/export/professional-budget", async (req, res) => {
+  app.post("/api/export/professional-budget", isAuthenticated, async (req: any, res) => {
     try {
-      const budget = await storage.getLatestProfessionalBudget();
+      const userId = req.user.claims.sub;
+      const budget = await storage.getLatestProfessionalBudget(userId);
       if (!budget) {
         return res.status(404).json({ error: "No professional budget found" });
       }
