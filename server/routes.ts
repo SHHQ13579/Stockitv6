@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   insertProfitScenarioSchema,
   insertRetailBudgetSchema,
@@ -12,30 +13,60 @@ import { z } from "zod";
 import * as XLSX from 'xlsx';
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Profit scenarios
-  app.get("/api/profit-scenarios", async (req, res) => {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const scenarios = await storage.getProfitScenarios();
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch('/api/auth/user/vat', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { vatPercent } = req.body;
+      await storage.updateUserVatPercent(userId, vatPercent);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating VAT percent:", error);
+      res.status(500).json({ message: "Failed to update VAT percent" });
+    }
+  });
+
+  // Profit scenarios
+  app.get("/api/profit-scenarios", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const scenarios = await storage.getProfitScenarios(userId);
       res.json(scenarios);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch profit scenarios" });
     }
   });
 
-  app.post("/api/profit-scenarios", async (req, res) => {
+  app.post("/api/profit-scenarios", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const scenario = insertProfitScenarioSchema.parse(req.body);
-      const newScenario = await storage.createProfitScenario(scenario);
+      const newScenario = await storage.createProfitScenario(userId, scenario);
       res.json(newScenario);
     } catch (error) {
       res.status(400).json({ error: "Invalid scenario data" });
     }
   });
 
-  app.delete("/api/profit-scenarios/:id", async (req, res) => {
+  app.delete("/api/profit-scenarios/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
-      await storage.deleteProfitScenario(id);
+      await storage.deleteProfitScenario(id, userId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete scenario" });
@@ -43,22 +74,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Retail budget
-  app.get("/api/retail-budget", async (req, res) => {
+  app.get("/api/retail-budget", isAuthenticated, async (req: any, res) => {
     try {
-      const budget = await storage.getLatestRetailBudget();
+      const userId = req.user.claims.sub;
+      const budget = await storage.getLatestRetailBudget(userId);
       res.json(budget);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch retail budget" });
     }
   });
 
-  app.post("/api/retail-budget", async (req, res) => {
+  app.post("/api/retail-budget", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { budget, suppliers } = req.body;
       const budgetData = insertRetailBudgetSchema.parse(budget);
       const supplierData = z.array(insertRetailSupplierSchema.omit({ budgetId: true })).parse(suppliers);
       
-      const result = await storage.saveRetailBudget(budgetData, supplierData);
+      const result = await storage.saveRetailBudget(userId, budgetData, supplierData);
       res.json(result);
     } catch (error) {
       res.status(400).json({ error: "Invalid budget data" });
@@ -66,22 +99,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Professional budget
-  app.get("/api/professional-budget", async (req, res) => {
+  app.get("/api/professional-budget", isAuthenticated, async (req: any, res) => {
     try {
-      const budget = await storage.getLatestProfessionalBudget();
+      const userId = req.user.claims.sub;
+      const budget = await storage.getLatestProfessionalBudget(userId);
       res.json(budget);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch professional budget" });
     }
   });
 
-  app.post("/api/professional-budget", async (req, res) => {
+  app.post("/api/professional-budget", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { budget, suppliers } = req.body;
       const budgetData = insertProfessionalBudgetSchema.parse(budget);
       const supplierData = z.array(insertProfessionalSupplierSchema.omit({ budgetId: true })).parse(suppliers);
       
-      const result = await storage.saveProfessionalBudget(budgetData, supplierData);
+      const result = await storage.saveProfessionalBudget(userId, budgetData, supplierData);
       res.json(result);
     } catch (error) {
       res.status(400).json({ error: "Invalid budget data" });
