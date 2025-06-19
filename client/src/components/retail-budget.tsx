@@ -26,6 +26,7 @@ interface Supplier {
 }
 
 export default function RetailBudget({ currency }: RetailBudgetProps) {
+  const isMobile = useIsMobile();
   const [netSales, setNetSales] = useState("");
   const [budgetPercent, setBudgetPercent] = useState("65.0");
   const [suppliers, setSuppliers] = useState<Supplier[]>([
@@ -35,7 +36,6 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
 
   const { data: budgetData } = useQuery<{ budget: RetailBudget; suppliers: RetailSupplier[] } | null>({
     queryKey: ["/api/retail-budget"],

@@ -10,7 +10,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import type { ProfessionalBudget, ProfessionalSupplier } from "@shared/schema";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileSupplierRow from "./mobile-supplier-row";
+import type { ProfessionalBudget, ProfessionalSupplier, InsertProfessionalBudget, InsertProfessionalSupplier, User } from "@shared/schema";
 
 interface ProfessionalBudgetProps {
   currency: string;
@@ -23,6 +26,7 @@ interface Supplier {
 }
 
 export default function ProfessionalBudget({ currency, user }: ProfessionalBudgetProps) {
+  const isMobile = useIsMobile();
   const [netServices, setNetServices] = useState("");
   const [budgetPercent, setBudgetPercent] = useState(user?.defaultProfessionalBudgetPercent || "7.0");
   const [suppliers, setSuppliers] = useState<Supplier[]>([
@@ -36,7 +40,6 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
 
   const { data: budgetData } = useQuery<{ budget: ProfessionalBudget; suppliers: ProfessionalSupplier[] } | null>({
     queryKey: ["/api/professional-budget"],
