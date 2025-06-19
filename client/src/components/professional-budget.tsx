@@ -28,7 +28,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
-  const [undoStack, setUndoStack] = useState<{ netServices: string; suppliers: Supplier[] }[]>([]);
+  const [undoStack, setUndoStack] = useState<{ netServices: string; suppliers: Supplier[]; budgetPercent: string }[]>([]);
 
   // Refs for keyboard navigation
   const netServicesRef = useRef<HTMLInputElement>(null);
@@ -153,12 +153,29 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
       setUndoStack(prev => prev.slice(0, -1));
       setNetServices(previousState.netServices);
       setSuppliers(previousState.suppliers);
+      setBudgetPercent(previousState.budgetPercent);
     }
   };
 
   const handleNetServicesChange = (value: string) => {
-    saveToUndoStack();
+    // Only save to undo stack when net services has a meaningful value
+    if (value.trim() !== '' && parseFloat(value) > 0) {
+      saveToUndoStack();
+    }
     setNetServices(value);
+  };
+
+  const handleBudgetPercentChange = (value: string) => {
+    // Save to undo stack when budget percent changes meaningfully
+    if (value !== budgetPercent && value.trim() !== '') {
+      saveToUndoStack();
+    }
+    setBudgetPercent(value);
+    
+    // Update user's default professional budget percentage
+    if (value !== user?.defaultProfessionalBudgetPercent) {
+      updateProfessionalBudgetPercentMutation.mutate(value);
+    }
   };
 
   return (

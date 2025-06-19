@@ -28,7 +28,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
-  const [undoStack, setUndoStack] = useState<{ netSales: string; suppliers: Supplier[] }[]>([]);
+  const [undoStack, setUndoStack] = useState<{ netSales: string; suppliers: Supplier[]; budgetPercent: string }[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -69,7 +69,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const utilization = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
   const saveToUndoStack = () => {
-    setUndoStack(prev => [...prev.slice(-9), { netSales, suppliers }]); // Keep last 10 states
+    setUndoStack(prev => [...prev.slice(-9), { netSales, suppliers, budgetPercent }]); // Keep last 10 states
   };
 
   const addSupplier = () => {
@@ -85,9 +85,17 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    saveToUndoStack();
+    // Only save to undo stack when completing a supplier (both name and allocation filled)
     const updated = [...suppliers];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Save state when supplier becomes complete
+    if (field === 'allocation' && value.trim() !== '' && updated[index].name.trim() !== '') {
+      saveToUndoStack();
+    } else if (field === 'name' && value.trim() !== '' && updated[index].allocation.trim() !== '') {
+      saveToUndoStack();
+    }
+    
     setSuppliers(updated);
   };
 
@@ -120,12 +128,24 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
       setUndoStack(prev => prev.slice(0, -1));
       setNetSales(previousState.netSales);
       setSuppliers(previousState.suppliers);
+      setBudgetPercent(previousState.budgetPercent);
     }
   };
 
   const handleNetSalesChange = (value: string) => {
-    saveToUndoStack();
+    // Only save to undo stack when net sales has a meaningful value
+    if (value.trim() !== '' && parseFloat(value) > 0) {
+      saveToUndoStack();
+    }
     setNetSales(value);
+  };
+
+  const handleBudgetPercentChange = (value: string) => {
+    // Save to undo stack when budget percent changes meaningfully
+    if (value !== budgetPercent && value.trim() !== '') {
+      saveToUndoStack();
+    }
+    setBudgetPercent(value);
   };
 
   return (
@@ -187,7 +207,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     step="0.1"
                     max="100"
                     value={budgetPercent}
-                    onChange={(e) => setBudgetPercent(e.target.value)}
+                    onChange={(e) => handleBudgetPercentChange(e.target.value)}
                     placeholder="65.0"
                     className="text-xl h-12"
                   />

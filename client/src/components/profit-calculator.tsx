@@ -204,9 +204,25 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    // Save current state to undo stack before making changes
-    setUndoStack(prev => [...prev.slice(-9), formData]); // Keep last 10 states
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Save state to undo stack at meaningful completion points
+    const newFormData = { ...formData, [field]: value };
+    
+    // Determine if this is a meaningful stage completion
+    const isStageComplete = (
+      (field === "rrp" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "listPrice" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "discount" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "retroDiscount" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "usage" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "commission" && typeof value === "string" && parseFloat(value) > 0) ||
+      (field === "vatRegistered" && typeof value === "boolean")
+    );
+    
+    if (isStageComplete) {
+      setUndoStack(prev => [...prev.slice(-9), formData]); // Keep last 10 states
+    }
+    
+    setFormData(newFormData);
     
     // Update default VAT percentage when changed
     if (field === "vatPercent" && typeof value === "string" && value !== user?.defaultVatPercent) {
