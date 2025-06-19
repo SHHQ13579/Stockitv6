@@ -113,6 +113,12 @@ The application implements an abstraction layer for data storage with both in-me
 ✓ Session management with database storage
 ✓ Updated schema with user references and VAT fields
 
+### Undo Functionality (June 19, 2025)
+✓ Added undo functionality to all three pages (Profit Calculator, Retail Budget, Professional Budget)
+✓ Tracks last 10 actions for each page including form changes, supplier additions/removals, and clear actions
+✓ Undo button disabled when no actions available to undo
+✓ Preserves user workflow and prevents accidental data loss
+
 ## Changelog
 - June 19, 2025. Initial setup and major enhancements
 

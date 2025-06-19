@@ -28,6 +28,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
+  const [undoStack, setUndoStack] = useState<{ netSales: string; suppliers: Supplier[] }[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -67,17 +68,24 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   const remaining = totalBudget - totalAllocated;
   const utilization = totalBudget > 0 ? (totalAllocated / totalBudget) * 100 : 0;
 
+  const saveToUndoStack = () => {
+    setUndoStack(prev => [...prev.slice(-9), { netSales, suppliers }]); // Keep last 10 states
+  };
+
   const addSupplier = () => {
+    saveToUndoStack();
     setSuppliers([...suppliers, { name: "", allocation: "" }]);
   };
 
   const removeSupplier = (index: number) => {
     if (suppliers.length > 1) {
+      saveToUndoStack();
       setSuppliers(suppliers.filter((_, i) => i !== index));
     }
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
+    saveToUndoStack();
     const updated = [...suppliers];
     updated[index] = { ...updated[index], [field]: value };
     setSuppliers(updated);
@@ -101,8 +109,23 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleClear = () => {
+    saveToUndoStack();
     setNetSales("");
     setSuppliers([{ name: "", allocation: "" }]);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length > 0) {
+      const previousState = undoStack[undoStack.length - 1];
+      setUndoStack(prev => prev.slice(0, -1));
+      setNetSales(previousState.netSales);
+      setSuppliers(previousState.suppliers);
+    }
+  };
+
+  const handleNetSalesChange = (value: string) => {
+    saveToUndoStack();
+    setNetSales(value);
   };
 
   return (
@@ -140,7 +163,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     type="number"
                     step="0.01"
                     value={netSales}
-                    onChange={(e) => setNetSales(e.target.value)}
+                    onChange={(e) => handleNetSalesChange(e.target.value)}
                     placeholder="0.00"
                     className="text-xl h-12"
                   />
@@ -228,6 +251,14 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
           </Card>
 
           <div className="no-print flex space-x-4">
+            <Button
+              onClick={handleUndo}
+              variant="outline"
+              disabled={undoStack.length === 0}
+              className="text-lg px-6 py-3 border-slate-300 hover:bg-slate-50"
+            >
+              Undo
+            </Button>
             <Button
               onClick={handleSave}
               disabled={saveBudgetMutation.isPending}

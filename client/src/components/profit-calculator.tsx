@@ -50,6 +50,7 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   const [scenarioName, setScenarioName] = useState("");
   const [calculation, setCalculation] = useState<ProfitCalculation | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [undoStack, setUndoStack] = useState<typeof formData[]>([]);
   
   // Refs for keyboard navigation
   const productNameRef = useRef<HTMLInputElement>(null);
@@ -203,6 +204,8 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    // Save current state to undo stack before making changes
+    setUndoStack(prev => [...prev.slice(-9), formData]); // Keep last 10 states
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Update default VAT percentage when changed
@@ -247,6 +250,8 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
   };
 
   const loadScenario = (scenario: ProfitScenario) => {
+    // Save current state to undo stack before loading scenario
+    setUndoStack(prev => [...prev.slice(-9), formData]);
     setFormData({
       productName: scenario.productName,
       rrp: scenario.rrp,
@@ -258,6 +263,14 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
       usage: scenario.usage || "0",
       commission: scenario.commission || "0",
     });
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length > 0) {
+      const previousState = undoStack[undoStack.length - 1];
+      setUndoStack(prev => prev.slice(0, -1));
+      setFormData(previousState);
+    }
   };
 
   return (

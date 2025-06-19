@@ -28,6 +28,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
+  const [undoStack, setUndoStack] = useState<{ netServices: string; suppliers: Supplier[] }[]>([]);
 
   // Refs for keyboard navigation
   const netServicesRef = useRef<HTMLInputElement>(null);
@@ -141,8 +142,23 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   const handleClear = () => {
+    saveToUndoStack();
     setNetServices("");
     setSuppliers([{ name: "", allocation: "" }]);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length > 0) {
+      const previousState = undoStack[undoStack.length - 1];
+      setUndoStack(prev => prev.slice(0, -1));
+      setNetServices(previousState.netServices);
+      setSuppliers(previousState.suppliers);
+    }
+  };
+
+  const handleNetServicesChange = (value: string) => {
+    saveToUndoStack();
+    setNetServices(value);
   };
 
   return (
@@ -181,7 +197,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     type="number"
                     step="0.01"
                     value={netServices}
-                    onChange={(e) => setNetServices(e.target.value)}
+                    onChange={(e) => handleNetServicesChange(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -271,6 +287,14 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
           </Card>
 
           <div className="no-print flex space-x-4">
+            <Button
+              onClick={handleUndo}
+              variant="outline"
+              disabled={undoStack.length === 0}
+              className="text-lg px-6 py-3 border-slate-300 hover:bg-slate-50"
+            >
+              Undo
+            </Button>
             <Button
               onClick={handleSave}
               disabled={saveBudgetMutation.isPending}
