@@ -100,6 +100,11 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
     saveBudgetMutation.mutate({ budget: budgetData, suppliers: supplierData });
   };
 
+  const handleClear = () => {
+    setNetSales("");
+    setSuppliers([{ name: "", allocation: "" }]);
+  };
+
   return (
     <div className="space-y-8">
       <div className="mb-8">

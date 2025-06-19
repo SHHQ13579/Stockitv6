@@ -140,6 +140,11 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     saveBudgetMutation.mutate({ budget: budgetData, suppliers: supplierData });
   };
 
+  const handleClear = () => {
+    setNetServices("");
+    setSuppliers([{ name: "", allocation: "" }]);
+  };
+
   return (
     <div className="space-y-8">
       <div className="mb-8">
