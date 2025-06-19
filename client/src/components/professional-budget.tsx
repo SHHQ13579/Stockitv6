@@ -265,13 +265,20 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
             </CardContent>
           </Card>
 
-          <div className="no-print">
+          <div className="no-print flex space-x-4">
             <Button
               onClick={handleSave}
               disabled={saveBudgetMutation.isPending}
               className="bg-brand-blue hover:bg-blue-700 text-lg px-6 py-3"
             >
               {saveBudgetMutation.isPending ? "Saving..." : "Save Budget"}
+            </Button>
+            <Button
+              onClick={handleClear}
+              variant="outline"
+              className="text-lg px-6 py-3 border-slate-300 hover:bg-slate-50"
+            >
+              Clear
             </Button>
           </div>
         </div>
