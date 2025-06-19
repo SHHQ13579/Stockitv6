@@ -117,14 +117,17 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    // Only save to undo stack if the value is actually different
-    const currentValue = suppliers[index]?.[field] || "";
-    if (value !== currentValue) {
-      saveToUndoStack();
-    }
     const newSuppliers = [...suppliers];
     newSuppliers[index] = { ...newSuppliers[index], [field]: value };
     setSuppliers(newSuppliers);
+  };
+
+  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string) => {
+    // Only save to undo stack when user finishes editing (on blur)
+    const originalValue = suppliers[index]?.[field] || "";
+    if (value !== originalValue) {
+      saveToUndoStack();
+    }
   };
 
   const addSupplier = () => {
@@ -173,19 +176,27 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
   };
 
   const handleNetServicesChange = (value: string) => {
-    // Only save to undo stack if the value is actually different
-    if (value !== netServices) {
-      saveToUndoStack();
-    }
     setNetServices(value);
   };
 
-  const handleBudgetPercentChange = (value: string) => {
-    // Only save to undo stack if the value is actually different
-    if (value !== budgetPercent) {
+  const handleNetServicesBlur = (value: string) => {
+    // Only save to undo stack when user finishes editing
+    const originalValue = netServices;
+    if (value !== originalValue) {
       saveToUndoStack();
     }
+  };
+
+  const handleBudgetPercentChange = (value: string) => {
     setBudgetPercent(value);
+  };
+
+  const handleBudgetPercentBlur = (value: string) => {
+    // Only save to undo stack when user finishes editing
+    const originalValue = budgetPercent;
+    if (value !== originalValue) {
+      saveToUndoStack();
+    }
     
     // Update user's default professional budget percentage
     if (value !== user?.defaultProfessionalBudgetPercent) {
@@ -230,6 +241,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     step="0.01"
                     value={netServices}
                     onChange={(e) => handleNetServicesChange(e.target.value)}
+                    onBlur={(e) => handleNetServicesBlur(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, budgetPercentRef)}
                     placeholder="0.00"
                     className="text-xl h-12"
@@ -256,6 +268,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
+                    onBlur={(e) => handleBudgetPercentBlur(e.target.value)}
                     placeholder="7.0"
                     className="text-xl h-12"
                   />
@@ -300,6 +313,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         id={`supplier-name-${index}`}
                         value={supplier.name}
                         onChange={(e) => updateSupplier(index, "name", e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value)}
                         placeholder="Enter supplier name"
                         className="text-xl h-12"
                       />
@@ -312,6 +326,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
                         step="0.01"
                         value={supplier.allocation}
                         onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value)}
                         placeholder="0.00"
                         className="text-xl h-12"
                       />

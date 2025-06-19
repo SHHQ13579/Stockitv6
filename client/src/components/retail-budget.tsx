@@ -89,14 +89,17 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const updateSupplier = (index: number, field: keyof Supplier, value: string) => {
-    // Only save to undo stack if the value is actually different
-    const currentValue = suppliers[index]?.[field] || "";
-    if (value !== currentValue) {
-      saveToUndoStack();
-    }
     const updated = [...suppliers];
     updated[index] = { ...updated[index], [field]: value };
     setSuppliers(updated);
+  };
+
+  const handleSupplierBlur = (index: number, field: keyof Supplier, value: string) => {
+    // Only save to undo stack when user finishes editing (on blur)
+    const originalValue = suppliers[index]?.[field] || "";
+    if (value !== originalValue) {
+      saveToUndoStack();
+    }
   };
 
   const handleSave = () => {
@@ -133,19 +136,27 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
   };
 
   const handleNetSalesChange = (value: string) => {
-    // Only save to undo stack if the value is actually different
-    if (value !== netSales) {
-      saveToUndoStack();
-    }
     setNetSales(value);
   };
 
-  const handleBudgetPercentChange = (value: string) => {
-    // Only save to undo stack if the value is actually different
-    if (value !== budgetPercent) {
+  const handleNetSalesBlur = (value: string) => {
+    // Only save to undo stack when user finishes editing
+    const originalValue = netSales;
+    if (value !== originalValue) {
       saveToUndoStack();
     }
+  };
+
+  const handleBudgetPercentChange = (value: string) => {
     setBudgetPercent(value);
+  };
+
+  const handleBudgetPercentBlur = (value: string) => {
+    // Only save to undo stack when user finishes editing
+    const originalValue = budgetPercent;
+    if (value !== originalValue) {
+      saveToUndoStack();
+    }
   };
 
   return (
@@ -184,6 +195,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     step="0.01"
                     value={netSales}
                     onChange={(e) => handleNetSalesChange(e.target.value)}
+                    onBlur={(e) => handleNetSalesBlur(e.target.value)}
                     placeholder="0.00"
                     className="text-xl h-12"
                   />
@@ -208,6 +220,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                     max="100"
                     value={budgetPercent}
                     onChange={(e) => handleBudgetPercentChange(e.target.value)}
+                    onBlur={(e) => handleBudgetPercentBlur(e.target.value)}
                     placeholder="65.0"
                     className="text-xl h-12"
                   />
@@ -252,6 +265,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                         id={`supplier-name-${index}`}
                         value={supplier.name}
                         onChange={(e) => updateSupplier(index, "name", e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "name", e.target.value)}
                         placeholder="Enter supplier name"
                         className="text-xl h-12"
                       />
@@ -264,6 +278,7 @@ export default function RetailBudget({ currency }: RetailBudgetProps) {
                         step="0.01"
                         value={supplier.allocation}
                         onChange={(e) => updateSupplier(index, "allocation", e.target.value)}
+                        onBlur={(e) => handleSupplierBlur(index, "allocation", e.target.value)}
                         placeholder="0.00"
                         className="text-xl h-12"
                       />
