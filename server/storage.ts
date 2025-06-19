@@ -69,6 +69,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateUserProfessionalBudgetPercent(userId: string, budgetPercent: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ defaultProfessionalBudgetPercent: budgetPercent, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
   async getProfitScenarios(userId: string): Promise<ProfitScenario[]> {
     return await db
       .select()
