@@ -15,7 +15,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: REPL_ID
-        value: your-replit-app-id
+        value: d1e4dc87-4049-4246-b7b0-98d36d9b2ed7
       - key: ISSUER_URL
         value: https://replit.com/oidc
       - key: REPLIT_DOMAINS
