@@ -61,5 +61,8 @@ FILE STRUCTURE
 /dist/                - Built application (generated)
 package.json          - Dependencies and scripts
 DEPLOYMENT_GUIDE.txt  - Detailed deployment instructions
+SYSTEM_REQUIREMENTS.txt - Complete system requirements
+render.yaml           - Render deployment configuration
 
 For detailed deployment instructions, see DEPLOYMENT_GUIDE.txt
+For system requirements, see SYSTEM_REQUIREMENTS.txt

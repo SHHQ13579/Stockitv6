@@ -1,0 +1,133 @@
+STOCKIT - SYSTEM REQUIREMENTS & DEPENDENCIES
+==========================================
+
+RUNTIME REQUIREMENTS
+--------------------
+Node.js: 18.x or higher
+PostgreSQL: 13.x or higher
+NPM: 8.x or higher
+Memory: 512MB minimum, 1GB recommended
+Storage: 1GB minimum for application files
+
+CORE DEPENDENCIES (from package.json)
+-------------------------------------
+Frontend Framework:
+- React 18.x
+- TypeScript 5.x
+- Vite 5.x (build tool)
+
+Backend Framework:
+- Express.js 4.x
+- Node.js 18+
+- TypeScript 5.x
+
+Database:
+- PostgreSQL 13+
+- Drizzle ORM (type-safe database toolkit)
+- @neondatabase/serverless (PostgreSQL driver)
+
+UI & Styling:
+- Radix UI (accessible components)
+- Tailwind CSS (utility-first CSS)
+- shadcn/ui (component library)
+- Lucide React (icon library)
+- Framer Motion (animations)
+
+Authentication:
+- Passport.js
+- OpenID Connect
+- Express Session
+- connect-pg-simple (PostgreSQL session store)
+
+Development Tools:
+- ESBuild (JavaScript bundler)
+- Drizzle Kit (database migrations)
+- TSX (TypeScript execution)
+
+INSTALLATION COMMANDS
+--------------------
+npm install              # Install all dependencies
+npm run build           # Build for production
+npm run start           # Start production server
+npm run db:push         # Setup database schema
+npm run dev             # Development mode
+
+ENVIRONMENT VARIABLES
+--------------------
+Required for production:
+- DATABASE_URL (PostgreSQL connection string)
+- SESSION_SECRET (session encryption key)
+- REPL_ID (OAuth application ID)
+- REPLIT_DOMAINS (allowed domains)
+- ISSUER_URL (OAuth endpoint)
+- NODE_ENV (production/development)
+- PORT (server port, default: 5000)
+
+Database connection format:
+DATABASE_URL=postgresql://username:password@host:port/database
+
+DEPLOYMENT PLATFORMS
+-------------------
+Primary: Render.com
+Alternatives: Heroku, Railway, Vercel, Netlify
+
+BROWSER SUPPORT
+--------------
+Desktop:
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+Mobile:
+- iOS Safari 14+
+- Android Chrome 90+
+- Responsive design for all screen sizes
+
+FEATURES
+--------
+- Multi-currency support (GBP, USD, EUR)
+- VAT calculations
+- Profit margin calculations
+- Budget allocation management
+- Excel export functionality
+- Mobile-responsive design
+- Interactive tutorial system
+- User authentication (OAuth)
+- Data persistence
+- Undo/redo functionality
+- Print functionality
+- Real-time calculations
+
+SECURITY
+--------
+- OAuth 2.0 authentication
+- Session management
+- CSRF protection
+- Input validation
+- SQL injection prevention
+- XSS protection
+- Secure HTTP headers
+
+PERFORMANCE
+-----------
+- Code splitting
+- Asset optimization
+- Database connection pooling
+- Caching headers
+- Gzip compression
+- Minified assets
+
+FILES INCLUDED
+--------------
+- package.json (dependencies)
+- DEPLOYMENT_GUIDE.txt (setup instructions)
+- README.txt (quick start)
+- render.yaml (deployment config)
+- /client/ (React frontend)
+- /server/ (Express backend)
+- /shared/ (TypeScript schemas)
+- drizzle.config.ts (database config)
+
+LAST UPDATED: June 20, 2025
+VERSION: 1.0.0

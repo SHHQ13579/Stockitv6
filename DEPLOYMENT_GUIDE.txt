@@ -49,6 +49,8 @@ npm run build           # Build both frontend and backend
 npm run start           # Start production server
 npm run dev             # Development mode (not for production)
 npm run db:push         # Push database schema (Drizzle)
+npm run prepare         # Prepare for deployment (runs build)
+npm run postinstall     # Post-install setup (runs db:push)
 
 ENVIRONMENT VARIABLES REQUIRED
 ------------------------------
@@ -178,7 +180,7 @@ PERFORMANCE NOTES
 CONTACT & SUPPORT
 ----------------
 For technical issues or questions about deployment,
-refer to this documentation or the project README.
+refer to this documentation, README.txt, or SYSTEM_REQUIREMENTS.txt.
 
 Last Updated: June 19, 2025
 Version: 1.0.0
