@@ -1,0 +1,215 @@
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { nanoid } from 'nanoid';
+import type { Request, Response, NextFunction } from 'express';
+import { storage } from './storage';
+import type { 
+  RegisterData, 
+  LoginData, 
+  ForgotPasswordData, 
+  ResetPasswordData,
+  ChangePasswordData,
+  User 
+} from '@shared/schema';
+
+// Hash password
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12;
+  return bcrypt.hash(password, saltRounds);
+}
+
+// Verify password
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+// Generate secure token
+export function generateToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Generate user ID
+export function generateUserId(): string {
+  return nanoid();
+}
+
+// Register new user
+export async function registerUser(userData: RegisterData): Promise<{ user: User; message: string }> {
+  // Check if username already exists
+  const existingUserByUsername = await storage.getUserByUsername(userData.username);
+  if (existingUserByUsername) {
+    throw new Error('Username already exists');
+  }
+
+  // Check if email already exists
+  const existingUserByEmail = await storage.getUserByEmail(userData.email);
+  if (existingUserByEmail) {
+    throw new Error('Email already exists');
+  }
+
+  // Hash password
+  const passwordHash = await hashPassword(userData.password);
+
+  // Create user
+  const user = await storage.createUser({
+    id: generateUserId(),
+    username: userData.username,
+    email: userData.email,
+    passwordHash,
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    vatPercent: "20",
+    professionalBudgetPercent: "7",
+  });
+
+  // Generate email verification token
+  const verificationToken = generateToken();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  await storage.createEmailVerificationToken({
+    userId: user.id,
+    token: verificationToken,
+    expiresAt,
+  });
+
+  // In a real application, you would send an email here
+  // For now, we'll just mark as verified
+  await storage.verifyUserEmail(user.id);
+
+  return {
+    user,
+    message: 'Registration successful! Please check your email to verify your account.',
+  };
+}
+
+// Login user
+export async function loginUser(loginData: LoginData): Promise<{ user: User; message: string }> {
+  // Find user by username
+  const user = await storage.getUserByUsername(loginData.username);
+  if (!user) {
+    throw new Error('Invalid username or password');
+  }
+
+  // Verify password
+  const isValidPassword = await verifyPassword(loginData.password, user.passwordHash);
+  if (!isValidPassword) {
+    throw new Error('Invalid username or password');
+  }
+
+  return {
+    user,
+    message: 'Login successful!',
+  };
+}
+
+// Request password reset
+export async function requestPasswordReset(forgotData: ForgotPasswordData): Promise<{ message: string }> {
+  const user = await storage.getUserByEmail(forgotData.email);
+  if (!user) {
+    // Don't reveal if email exists or not for security
+    return {
+      message: 'If an account with this email exists, you will receive a password reset link.',
+    };
+  }
+
+  // Generate reset token
+  const resetToken = generateToken();
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await storage.createPasswordResetToken({
+    userId: user.id,
+    token: resetToken,
+    expiresAt,
+  });
+
+  // In a real application, you would send an email here
+  // For development, we'll log the token
+  console.log(`Password reset token for ${user.email}: ${resetToken}`);
+
+  return {
+    message: 'If an account with this email exists, you will receive a password reset link.',
+  };
+}
+
+// Reset password
+export async function resetPassword(resetData: ResetPasswordData): Promise<{ message: string }> {
+  // Find valid reset token
+  const resetToken = await storage.getPasswordResetToken(resetData.token);
+  if (!resetToken || resetToken.expiresAt < new Date()) {
+    throw new Error('Invalid or expired reset token');
+  }
+
+  // Hash new password
+  const passwordHash = await hashPassword(resetData.password);
+
+  // Update user password
+  await storage.updateUserPassword(resetToken.userId, passwordHash);
+
+  // Delete used token
+  await storage.deletePasswordResetToken(resetToken.id);
+
+  return {
+    message: 'Password reset successfully! You can now login with your new password.',
+  };
+}
+
+// Change password (for logged-in users)
+export async function changePassword(userId: string, changeData: ChangePasswordData): Promise<{ message: string }> {
+  const user = await storage.getUser(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Verify current password
+  const isValidPassword = await verifyPassword(changeData.currentPassword, user.passwordHash);
+  if (!isValidPassword) {
+    throw new Error('Current password is incorrect');
+  }
+
+  // Hash new password
+  const passwordHash = await hashPassword(changeData.newPassword);
+
+  // Update password
+  await storage.updateUserPassword(userId, passwordHash);
+
+  return {
+    message: 'Password changed successfully!',
+  };
+}
+
+// Authentication middleware
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session?.userId) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  next();
+}
+
+// Get current user middleware
+export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
+  if (req.session?.userId) {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (user) {
+        // Remove password hash from user object
+        const { passwordHash, ...safeUser } = user;
+        req.user = safeUser;
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  }
+  next();
+}
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: Omit<User, 'passwordHash'>;
+    }
+    interface Session {
+      userId?: string;
+    }
+  }
+}
