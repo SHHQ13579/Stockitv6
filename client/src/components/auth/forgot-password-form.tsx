@@ -116,10 +116,13 @@ export default function ForgotPasswordForm({ onSwitchToLogin }: ForgotPasswordFo
         </div>
 
         {success && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>Admin Note:</strong> Password reset information has been logged to the server console. 
-              Your salon administrator can provide you with the reset link.
+          <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+            <p className="text-sm text-green-800">
+              <strong>Email Sent!</strong> We've sent a password reset link to your email address. 
+              Please check your inbox and follow the instructions to reset your password.
+            </p>
+            <p className="text-xs text-green-600 mt-2">
+              Don't see the email? Check your spam folder or contact your administrator for help.
             </p>
           </div>
         )}

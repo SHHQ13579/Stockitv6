@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { nanoid } from 'nanoid';
 import type { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
+import { sendEmail, generatePasswordResetEmail } from './email';
 import type { 
   RegisterData, 
   LoginData, 
@@ -88,7 +89,7 @@ export async function loginUser(loginData: LoginData): Promise<{ user: User; mes
   };
 }
 
-// Request password reset (simplified - logs token for admin use)
+// Request password reset with email delivery
 export async function requestPasswordReset(forgotData: ForgotPasswordData): Promise<{ message: string; resetToken?: string }> {
   const user = await storage.getUserByEmail(forgotData.email);
   if (!user) {
@@ -97,7 +98,7 @@ export async function requestPasswordReset(forgotData: ForgotPasswordData): Prom
 
   // Generate reset token
   const resetToken = generateToken();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
   await storage.createPasswordResetToken({
     userId: user.id,
@@ -105,18 +106,32 @@ export async function requestPasswordReset(forgotData: ForgotPasswordData): Prom
     expiresAt,
   });
 
-  // Log token for admin/development use
-  console.log(`\n=== PASSWORD RESET REQUEST ===`);
-  console.log(`User: ${user.username} (${user.email})`);
-  console.log(`Reset Token: ${resetToken}`);
-  console.log(`Reset URL: /auth?token=${resetToken}`);
-  console.log(`Expires: ${expiresAt.toLocaleString()}`);
-  console.log(`===============================\n`);
-
-  return {
-    message: 'Password reset token generated. Check server console for reset information.',
-    resetToken: resetToken, // Return token for development
-  };
+  try {
+    // Send email using Brevo
+    const emailOptions = generatePasswordResetEmail(resetToken, user.email);
+    await sendEmail(emailOptions);
+    
+    console.log(`Password reset email sent to: ${user.email}`);
+    
+    return {
+      message: 'Password reset link has been sent to your email address. Please check your inbox.',
+    };
+  } catch (error) {
+    console.error('Failed to send password reset email:', error);
+    
+    // Fallback to console logging if email fails
+    console.log(`\n=== PASSWORD RESET FALLBACK ===`);
+    console.log(`User: ${user.username} (${user.email})`);
+    console.log(`Reset Token: ${resetToken}`);
+    console.log(`Reset URL: /auth?token=${resetToken}`);
+    console.log(`Expires: ${expiresAt.toLocaleString()}`);
+    console.log(`===============================\n`);
+    
+    return {
+      message: 'Email service temporarily unavailable. Please contact your administrator for password reset assistance.',
+      resetToken: resetToken, // Return token for admin assistance
+    };
+  }
 }
 
 // Reset password

@@ -12,6 +12,7 @@ import ProfessionalBudget from "@/components/professional-budget";
 import CurrencySelector from "@/components/currency-selector";
 import StockWizard from "@/components/stock-wizard";
 import { exportToExcel } from "@/lib/excel-export";
+import type { User } from "@shared/schema";
 
 export default function Stockit() {
   const [activeTab, setActiveTab] = useState("profit-calculator");
@@ -81,7 +82,7 @@ export default function Stockit() {
               </span>
               {user && (
                 <span className="text-lg text-slate-600 ml-4 hidden md:inline">
-                  Welcome, {user.firstName || user.email}
+                  Welcome, {user.firstName || user.username}
                 </span>
               )}
             </div>
