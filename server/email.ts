@@ -52,10 +52,26 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 }
 
 export function generatePasswordResetEmail(resetToken: string, userEmail: string): EmailOptions {
-  // Use the current domain from environment - render compatible
-  const baseUrl = process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
-  const resetUrl = `${baseUrl}/auth?token=${resetToken}`;
+  // Priority order for domain detection:
+  // 1. FRONTEND_URL (production Render deployment)
+  // 2. RENDER_EXTERNAL_URL (Render environment variable)
+  // 3. REPLIT_DOMAINS (development on Replit)
+  // 4. localhost (fallback for local development)
   
+  let baseUrl = process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL;
+  
+  // For development, prefer the actual Replit domain over localhost
+  if (!baseUrl && process.env.REPLIT_DOMAINS) {
+    const replitDomain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
+    baseUrl = `https://${replitDomain}`;
+  }
+  
+  // Last resort fallback
+  if (!baseUrl) {
+    baseUrl = 'http://localhost:5000';
+  }
+  
+  const resetUrl = `${baseUrl}/auth?token=${resetToken}`;
   console.log('Generated reset URL:', resetUrl);
   
   const htmlContent = `
