@@ -21,7 +21,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   
   sendSmtpEmail.to = [{ email: options.to }];
   sendSmtpEmail.sender = { 
-    email: 'noreply@stockit.app', 
+    email: 'noreply@gmail.com', 
     name: 'Stockit - Salon Management' 
   };
   sendSmtpEmail.subject = options.subject;
@@ -29,10 +29,24 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   sendSmtpEmail.textContent = options.textContent || options.htmlContent.replace(/<[^>]*>/g, '');
 
   try {
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('Attempting to send email to:', options.to);
+    console.log('Using sender:', sendSmtpEmail.sender);
+    console.log('BREVO_API_KEY configured:', !!process.env.BREVO_API_KEY);
+    
+    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Email sent successfully to:', options.to);
+    console.log('Brevo response:', result);
   } catch (error) {
     console.error('Failed to send email:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    // Fallback to console logging if email fails
+    console.log('\n=== EMAIL FALLBACK ===');
+    console.log('To:', options.to);
+    console.log('Subject:', options.subject);
+    console.log('Content:', options.textContent || options.htmlContent);
+    console.log('======================\n');
+    
     throw new Error('Failed to send email');
   }
 }
