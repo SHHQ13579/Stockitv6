@@ -28,11 +28,8 @@ export default function ForgotPasswordForm({ onSwitchToLogin }: ForgotPasswordFo
 
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: ForgotPasswordData) => {
-      const response = await apiRequest("/api/auth/forgot-password", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      return response;
+      const response = await apiRequest("POST", "/api/auth/forgot-password", data);
+      return response.json();
     },
     onSuccess: (data) => {
       setError(null);

@@ -176,6 +176,7 @@ export const changePasswordSchema = z.object({
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
   username: true,
   email: true,
   passwordHash: true,
@@ -188,6 +189,7 @@ export const upsertUserSchema = createInsertSchema(users).pick({
   id: true,
   username: true,
   email: true,
+  passwordHash: true,
   firstName: true,
   lastName: true,
   profileImageUrl: true,
@@ -214,21 +216,6 @@ export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
-
-export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
-export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
-
-export type RegisterData = z.infer<typeof registerSchema>;
-export type LoginData = z.infer<typeof loginSchema>;
-export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
-export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
-
-export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
-export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
-
-export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
-export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
 
 export type ProfitScenario = typeof profitScenarios.$inferSelect;
 export type InsertProfitScenario = z.infer<typeof insertProfitScenarioSchema>;

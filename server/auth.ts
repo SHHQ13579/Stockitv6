@@ -167,7 +167,8 @@ export async function changePassword(userId: string, changeData: ChangePasswordD
 
 // Authentication middleware
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session?.userId) {
+  const session = req.session as any;
+  if (!session?.userId) {
     return res.status(401).json({ message: 'Authentication required' });
   }
   next();
@@ -175,9 +176,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 
 // Get current user middleware
 export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
-  if (req.session?.userId) {
+  const session = req.session as any;
+  if (session?.userId) {
     try {
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(session.userId);
       if (user) {
         // Remove password hash from user object
         const { passwordHash, ...safeUser } = user;
@@ -196,6 +198,8 @@ declare global {
     interface Request {
       user?: Omit<User, 'passwordHash'>;
     }
+  }
+  namespace Express {
     interface Session {
       userId?: string;
     }

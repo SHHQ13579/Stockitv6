@@ -1,38 +1,141 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import session from "express-session";
+import { 
+  registerUser, 
+  loginUser, 
+  requestPasswordReset, 
+  resetPassword, 
+  changePassword,
+  requireAuth,
+  getCurrentUser 
+} from "./auth";
 import { 
   insertProfitScenarioSchema,
   insertRetailBudgetSchema,
   insertRetailSupplierSchema,
   insertProfessionalBudgetSchema,
   insertProfessionalSupplierSchema,
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import * as XLSX from 'xlsx';
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Session setup
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }));
+
+  // Add current user to all requests
+  app.use(getCurrentUser);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/register', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const validatedData = registerSchema.parse(req.body);
+      const result = await registerUser(validatedData);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      res.status(400).json({ message: error.message || 'Registration failed' });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      const result = await loginUser(validatedData);
+      
+      // Set session
+      (req.session as any).userId = result.user.id;
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      res.status(400).json({ message: error.message || 'Login failed' });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+        res.status(500).json({ message: 'Logout failed' });
+      } else {
+        res.json({ message: 'Logged out successfully' });
+      }
+    });
+  });
+
+  app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+      const validatedData = forgotPasswordSchema.parse(req.body);
+      const result = await requestPasswordReset(validatedData);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Password reset request error:', error);
+      res.status(400).json({ message: error.message || 'Password reset request failed' });
+    }
+  });
+
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const validatedData = resetPasswordSchema.parse(req.body);
+      const result = await resetPassword(validatedData);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      res.status(400).json({ message: error.message || 'Password reset failed' });
+    }
+  });
+
+  app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+    try {
+      const validatedData = changePasswordSchema.parse(req.body);
+      const session = req.session as any;
+      const result = await changePassword(session.userId, validatedData);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      res.status(400).json({ message: error.message || 'Password change failed' });
+    }
+  });
+
+  app.get('/api/auth/user', requireAuth, async (req, res) => {
+    try {
+      const session = req.session as any;
+      const user = await storage.getUser(session.userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove password hash from response
+      const { passwordHash, ...safeUser } = user;
+      res.json(safeUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  app.patch('/api/auth/user/vat', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/auth/user/vat', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const session = req.session as any;
       const { vatPercent } = req.body;
-      await storage.updateUserVatPercent(userId, vatPercent);
+      await storage.updateUserVatPercent(session.userId, vatPercent);
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating VAT percent:", error);
@@ -40,11 +143,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/auth/user/professional-budget-percent', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/auth/user/professional-budget-percent', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const session = req.session as any;
       const { budgetPercent } = req.body;
-      await storage.updateUserProfessionalBudgetPercent(userId, budgetPercent);
+      await storage.updateUserProfessionalBudgetPercent(session.userId, budgetPercent);
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating professional budget percent:", error);
@@ -53,9 +156,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profit scenarios
-  app.get("/api/profit-scenarios", isAuthenticated, async (req: any, res) => {
+  app.get("/api/profit-scenarios", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const scenarios = await storage.getProfitScenarios(userId);
       res.json(scenarios);
     } catch (error) {
@@ -63,9 +166,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/profit-scenarios", isAuthenticated, async (req: any, res) => {
+  app.post("/api/profit-scenarios", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const scenario = insertProfitScenarioSchema.parse(req.body);
       const newScenario = await storage.createProfitScenario(userId, scenario);
       res.json(newScenario);
@@ -74,9 +177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/profit-scenarios/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/profit-scenarios/:id", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const id = parseInt(req.params.id);
       await storage.deleteProfitScenario(id, userId);
       res.json({ success: true });
@@ -86,9 +189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Retail budget
-  app.get("/api/retail-budget", isAuthenticated, async (req: any, res) => {
+  app.get("/api/retail-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const budget = await storage.getLatestRetailBudget(userId);
       res.json(budget);
     } catch (error) {
@@ -96,9 +199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/retail-budget", isAuthenticated, async (req: any, res) => {
+  app.post("/api/retail-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const { budget, suppliers } = req.body;
       const budgetData = insertRetailBudgetSchema.parse(budget);
       const supplierData = z.array(insertRetailSupplierSchema.omit({ budgetId: true })).parse(suppliers);
@@ -111,9 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Professional budget
-  app.get("/api/professional-budget", isAuthenticated, async (req: any, res) => {
+  app.get("/api/professional-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const budget = await storage.getLatestProfessionalBudget(userId);
       res.json(budget);
     } catch (error) {
@@ -121,9 +224,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/professional-budget", isAuthenticated, async (req: any, res) => {
+  app.post("/api/professional-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const { budget, suppliers } = req.body;
       const budgetData = insertProfessionalBudgetSchema.parse(budget);
       const supplierData = z.array(insertProfessionalSupplierSchema.omit({ budgetId: true })).parse(suppliers);
@@ -136,9 +239,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Excel export endpoints
-  app.post("/api/export/profit-scenarios", isAuthenticated, async (req: any, res) => {
+  app.post("/api/export/profit-scenarios", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const scenarios = await storage.getProfitScenarios(userId);
       const workbook = XLSX.utils.book_new();
       
@@ -170,9 +273,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/export/retail-budget", isAuthenticated, async (req: any, res) => {
+  app.post("/api/export/retail-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const budget = await storage.getLatestRetailBudget(userId);
       if (!budget) {
         return res.status(404).json({ error: "No retail budget found" });
@@ -210,9 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/export/professional-budget", isAuthenticated, async (req: any, res) => {
+  app.post("/api/export/professional-budget", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.session as any).userId;
       const budget = await storage.getLatestProfessionalBudget(userId);
       if (!budget) {
         return res.status(404).json({ error: "No professional budget found" });
