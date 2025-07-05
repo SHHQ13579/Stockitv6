@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Reset - Stockit</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+        .button { background: #3b82f6; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .button:hover { background: #2563eb; }
+        .token { background: #e5e7eb; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Password Reset Access</h1>
+        <p>Your password reset token has been generated. Click the button below to reset your password:</p>
+        
+        <a href="/auth?token=26f24b28c5955c0a50b3ce70b72b87a3ca9feddefcfe894b66b0bc8e6f70509c" class="button">
+            Reset Password
+        </a>
+        
+        <p style="margin-top: 20px;">Or copy this URL:</p>
+        <div class="token">
+            /auth?token=26f24b28c5955c0a50b3ce70b72b87a3ca9feddefcfe894b66b0bc8e6f70509c
+        </div>
+        
+        <p style="margin-top: 20px; font-size: 14px; color: #666;">
+            This token expires in 1 hour. After resetting your password, you can log in with your username "sean" and your new password.
+        </p>
+    </div>
+</body>
+</html>
