@@ -115,7 +115,15 @@ export default function Stockit() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.location.href = "/api/logout"}
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/auth/logout', { method: 'POST' });
+                      window.location.href = '/';
+                    } catch (error) {
+                      console.error('Logout failed:', error);
+                      window.location.href = '/';
+                    }
+                  }}
                   className="text-slate-700 hover:text-red-600 text-base px-4 py-2"
                 >
                   <LogOut className="w-5 h-5 mr-2" />
