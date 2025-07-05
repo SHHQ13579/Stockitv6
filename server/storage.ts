@@ -6,7 +6,7 @@ import {
   professionalBudgets,
   professionalSuppliers,
   passwordResetTokens,
-  emailVerificationTokens,
+  // emailVerificationTokens not needed
   type User, 
   type UpsertUser,
   type InsertUser,
@@ -22,8 +22,7 @@ import {
   type InsertProfessionalSupplier,
   type PasswordResetToken,
   type InsertPasswordResetToken,
-  type EmailVerificationToken,
-  type InsertEmailVerificationToken,
+  // Email verification types not needed
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -39,17 +38,11 @@ export interface IStorage {
   updateUserPassword(userId: string, passwordHash: string): Promise<void>;
   updateUserVatPercent(userId: string, vatPercent: string): Promise<void>;
   updateUserProfessionalBudgetPercent(userId: string, budgetPercent: string): Promise<void>;
-  verifyUserEmail(userId: string): Promise<void>;
   
   // Password reset operations
   createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   deletePasswordResetToken(id: string): Promise<void>;
-  
-  // Email verification operations
-  createEmailVerificationToken(token: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
-  getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined>;
-  deleteEmailVerificationToken(id: string): Promise<void>;
   
   // Profit scenarios
   getProfitScenarios(userId: string): Promise<ProfitScenario[]>;

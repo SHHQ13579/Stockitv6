@@ -121,8 +121,8 @@ export default function ForgotPasswordForm({ onSwitchToLogin }: ForgotPasswordFo
         {success && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-800">
-              <strong>Development Note:</strong> In development mode, password reset tokens are logged to the console. 
-              Check the server logs to find your reset token.
+              <strong>Admin Note:</strong> Password reset information has been logged to the server console. 
+              Your salon administrator can provide you with the reset link.
             </p>
           </div>
         )}

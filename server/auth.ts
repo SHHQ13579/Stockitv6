@@ -58,27 +58,13 @@ export async function registerUser(userData: RegisterData): Promise<{ user: User
     passwordHash,
     firstName: userData.firstName,
     lastName: userData.lastName,
-    vatPercent: "20",
-    professionalBudgetPercent: "7",
   });
 
-  // Generate email verification token
-  const verificationToken = generateToken();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-  await storage.createEmailVerificationToken({
-    userId: user.id,
-    token: verificationToken,
-    expiresAt,
-  });
-
-  // In a real application, you would send an email here
-  // For now, we'll just mark as verified
-  await storage.verifyUserEmail(user.id);
+  // No email verification needed for salon use - account is immediately active
 
   return {
     user,
-    message: 'Registration successful! Please check your email to verify your account.',
+    message: 'Registration successful! You can now sign in to your account.',
   };
 }
 
@@ -102,19 +88,16 @@ export async function loginUser(loginData: LoginData): Promise<{ user: User; mes
   };
 }
 
-// Request password reset
-export async function requestPasswordReset(forgotData: ForgotPasswordData): Promise<{ message: string }> {
+// Request password reset (simplified - logs token for admin use)
+export async function requestPasswordReset(forgotData: ForgotPasswordData): Promise<{ message: string; resetToken?: string }> {
   const user = await storage.getUserByEmail(forgotData.email);
   if (!user) {
-    // Don't reveal if email exists or not for security
-    return {
-      message: 'If an account with this email exists, you will receive a password reset link.',
-    };
+    throw new Error('No account found with this email address');
   }
 
   // Generate reset token
   const resetToken = generateToken();
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   await storage.createPasswordResetToken({
     userId: user.id,
@@ -122,12 +105,17 @@ export async function requestPasswordReset(forgotData: ForgotPasswordData): Prom
     expiresAt,
   });
 
-  // In a real application, you would send an email here
-  // For development, we'll log the token
-  console.log(`Password reset token for ${user.email}: ${resetToken}`);
+  // Log token for admin/development use
+  console.log(`\n=== PASSWORD RESET REQUEST ===`);
+  console.log(`User: ${user.username} (${user.email})`);
+  console.log(`Reset Token: ${resetToken}`);
+  console.log(`Reset URL: /auth?token=${resetToken}`);
+  console.log(`Expires: ${expiresAt.toLocaleString()}`);
+  console.log(`===============================\n`);
 
   return {
-    message: 'If an account with this email exists, you will receive a password reset link.',
+    message: 'Password reset token generated. Check server console for reset information.',
+    resetToken: resetToken, // Return token for development
   };
 }
 

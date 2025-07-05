@@ -158,3 +158,4 @@ The application implements an abstraction layer for data storage with both in-me
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Authentication: Username/password system without email verification - suitable for salon environment where admin can help users directly.

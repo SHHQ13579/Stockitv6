@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   defaultVatPercent: decimal("default_vat_percent", { precision: 5, scale: 2 }).default("20.0"),
   defaultProfessionalBudgetPercent: decimal("default_professional_budget_percent", { precision: 5, scale: 2 }).default("7.0"),
-  isEmailVerified: boolean("is_email_verified").default(false),
+  // Email verification not needed for salon use
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -37,14 +37,7 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Email verification tokens table
-export const emailVerificationTokens = pgTable("email_verification_tokens", {
-  id: varchar("id").primaryKey().notNull(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  token: varchar("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Simplified - no email verification needed for salon use
 
 export const profitScenarios = pgTable("profit_scenarios", {
   id: serial("id").primaryKey(),
@@ -207,10 +200,7 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   createdAt: true,
 });
 
-export const insertEmailVerificationTokenSchema = createInsertSchema(emailVerificationTokens).omit({
-  id: true,
-  createdAt: true,
-});
+// Email verification not needed for salon use
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
