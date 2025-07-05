@@ -14,12 +14,10 @@ services:
           property: connectionString
       - key: SESSION_SECRET
         generateValue: true
-      - key: REPL_ID
-        value: d1e4dc87-4049-4246-b7b0-98d36d9b2ed7
-      - key: ISSUER_URL
-        value: https://replit.com/oidc
-      - key: REPLIT_DOMAINS
-        value: your-app-name.onrender.com
+      - key: FRONTEND_URL
+        value: https://your-app-name.onrender.com
+      - key: BREVO_API_KEY
+        value: your-brevo-api-key
 
 databases:
   - name: stockit-db
