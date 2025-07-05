@@ -18,6 +18,7 @@ export default function AuthPage() {
   
   // If there's a reset token, show reset password form
   if (resetToken && authMode !== "reset-password") {
+    console.log("Reset token found:", resetToken);
     setAuthMode("reset-password");
   }
 
