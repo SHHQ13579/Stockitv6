@@ -38,11 +38,13 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 }
 
 export function generatePasswordResetEmail(resetToken: string, userEmail: string): EmailOptions {
-  // Use the current domain from environment or default to the Replit domain
-  const baseUrl = process.env.REPLIT_DOMAINS ? 
-    `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
-    (process.env.FRONTEND_URL || 'http://localhost:5000');
+  // Use the current domain from environment - fixed to use the actual domain
+  const domain = process.env.REPLIT_DOMAINS?.split(',')[0];
+  const baseUrl = domain ? `https://${domain}` : 'https://your-app-domain.replit.app';
   const resetUrl = `${baseUrl}/auth?token=${resetToken}`;
+  
+  console.log('REPLIT_DOMAINS env var:', process.env.REPLIT_DOMAINS);
+  console.log('Generated reset URL:', resetUrl);
   
   const htmlContent = `
     <!DOCTYPE html>
