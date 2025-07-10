@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import { isUnauthorizedError } from "@/lib/authUtils";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileSupplierRow from "./mobile-supplier-row";
 import type { RetailBudget, RetailSupplier, InsertRetailBudget, InsertRetailSupplier } from "@shared/schema";

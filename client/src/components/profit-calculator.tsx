@@ -13,12 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import type { ProfitScenario, InsertProfitScenario, User } from "@shared/schema";
+import type { ProfitScenario, InsertProfitScenario } from "@shared/schema";
 
 interface ProfitCalculatorProps {
   currency: string;
-  user?: User;
 }
 
 interface ProfitCalculation {
@@ -35,12 +33,12 @@ interface ProfitCalculation {
   };
 }
 
-export default function ProfitCalculator({ currency, user }: ProfitCalculatorProps) {
+export default function ProfitCalculator({ currency }: ProfitCalculatorProps) {
   const [formData, setFormData] = useState({
     productName: "",
     rrp: "",
     vatRegistered: false,
-    vatPercent: user?.defaultVatPercent || "20.0",
+    vatPercent: "20.0",
     listPrice: "",
     discount: "",
     retroDiscount: "",
@@ -70,29 +68,7 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
     retry: false,
   });
 
-  const updateVatMutation = useMutation({
-    mutationFn: async (vatPercent: string) => {
-      const response = await apiRequest("PATCH", "/api/auth/user/vat", { vatPercent });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: "Success", description: "Default VAT percentage updated" });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({ title: "Error", description: "Failed to update VAT percentage", variant: "destructive" });
-    },
-  });
+  // No VAT update mutation needed - VAT is local only
 
   const saveScenarioMutation = useMutation({
     mutationFn: async (scenario: InsertProfitScenario) => {
@@ -106,17 +82,6 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
       setScenarioName("");
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({ title: "Error", description: "Failed to save scenario", variant: "destructive" });
     },
   });
@@ -130,17 +95,6 @@ export default function ProfitCalculator({ currency, user }: ProfitCalculatorPro
       toast({ title: "Success", description: "Scenario deleted successfully" });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({ title: "Error", description: "Failed to delete scenario", variant: "destructive" });
     },
   });

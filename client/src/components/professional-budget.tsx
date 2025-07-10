@@ -10,10 +10,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/currency";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileSupplierRow from "./mobile-supplier-row";
-import type { ProfessionalBudget, ProfessionalSupplier, InsertProfessionalBudget, InsertProfessionalSupplier, User } from "@shared/schema";
+import type { ProfessionalBudget, ProfessionalSupplier, InsertProfessionalBudget, InsertProfessionalSupplier } from "@shared/schema";
 
 interface ProfessionalBudgetProps {
   currency: string;
@@ -25,10 +24,10 @@ interface Supplier {
   allocation: string;
 }
 
-export default function ProfessionalBudget({ currency, user }: ProfessionalBudgetProps) {
+export default function ProfessionalBudget({ currency }: ProfessionalBudgetProps) {
   const isMobile = useIsMobile();
   const [netServices, setNetServices] = useState("");
-  const [budgetPercent, setBudgetPercent] = useState(user?.defaultProfessionalBudgetPercent || "7.0");
+  const [budgetPercent, setBudgetPercent] = useState("7.0");
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     { name: "", allocation: "" }
   ]);
@@ -47,29 +46,7 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
     retry: false,
   });
 
-  const updateBudgetPercentMutation = useMutation({
-    mutationFn: async (budgetPercent: string) => {
-      const response = await apiRequest("PATCH", "/api/auth/user/professional-budget-percent", { budgetPercent });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: "Success", description: "Default professional budget percentage updated" });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({ title: "Error", description: "Failed to update budget percentage", variant: "destructive" });
-    },
-  });
+  // No budget percentage update mutation needed - budget is local only
 
   const saveBudgetMutation = useMutation({
     mutationFn: async (data: { budget: any; suppliers: any[] }) => {
@@ -81,17 +58,6 @@ export default function ProfessionalBudget({ currency, user }: ProfessionalBudge
       toast({ title: "Success", description: "Budget saved successfully" });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized", 
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({ title: "Error", description: "Failed to save budget", variant: "destructive" });
     },
   });

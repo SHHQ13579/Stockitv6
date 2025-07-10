@@ -2,57 +2,31 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, ShoppingCart, Briefcase, TrendingUp, LogOut, Sparkles } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
+import { Calculator, ShoppingCart, Briefcase, TrendingUp, Sparkles } from "lucide-react";
 import ProfitCalculator from "@/components/profit-calculator";
 import RetailBudget from "@/components/retail-budget";
 import ProfessionalBudget from "@/components/professional-budget";
 import CurrencySelector from "@/components/currency-selector";
 import StockWizard from "@/components/stock-wizard";
 import { exportToExcel } from "@/lib/excel-export";
-import type { User } from "@shared/schema";
 
 export default function Stockit() {
   const [activeTab, setActiveTab] = useState("profit-calculator");
   const [currency, setCurrency] = useState("GBP");
   const [showWizard, setShowWizard] = useState(false);
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const { toast } = useToast();
 
   // Check if user is new (show wizard on first visit)
   useEffect(() => {
     const hasSeenWizard = localStorage.getItem('stockit-wizard-completed');
-    if (!hasSeenWizard && user) {
+    if (!hasSeenWizard) {
       setShowWizard(true);
     }
-  }, [user]);
+  }, []);
 
   const handleWizardComplete = () => {
     localStorage.setItem('stockit-wizard-completed', 'true');
     setShowWizard(false);
   };
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
-
-  if (isLoading) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="text-xl">Loading...</div>
-    </div>;
-  }
 
   const handlePrint = () => {
     window.print();
@@ -80,11 +54,6 @@ export default function Stockit() {
               <span className="text-lg text-slate-500 hidden sm:inline">
                 Salon Stock Management
               </span>
-              {user && (
-                <span className="text-lg text-slate-600 ml-4 hidden md:inline">
-                  Welcome, {user.firstName || user.username}
-                </span>
-              )}
             </div>
 
             <div className="flex items-center space-x-4">
@@ -116,19 +85,11 @@ export default function Stockit() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/auth/logout', { method: 'POST' });
-                      window.location.href = '/';
-                    } catch (error) {
-                      console.error('Logout failed:', error);
-                      window.location.href = '/';
-                    }
-                  }}
-                  className="text-slate-700 hover:text-red-600 text-base px-4 py-2"
+                  onClick={() => setShowWizard(true)}
+                  className="text-slate-700 hover:text-brand-blue text-base px-4 py-2"
                 >
-                  <LogOut className="w-5 h-5 mr-2" />
-                  Logout
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Tutorial
                 </Button>
               </div>
             </div>
@@ -155,7 +116,7 @@ export default function Stockit() {
           </TabsList>
 
           <TabsContent value="profit-calculator">
-            <ProfitCalculator currency={currency} user={user} />
+            <ProfitCalculator currency={currency} />
           </TabsContent>
 
           <TabsContent value="retail-budget">
@@ -163,7 +124,7 @@ export default function Stockit() {
           </TabsContent>
 
           <TabsContent value="professional-budget">
-            <ProfessionalBudget currency={currency} user={user} />
+            <ProfessionalBudget currency={currency} />
           </TabsContent>
         </Tabs>
       </main>
