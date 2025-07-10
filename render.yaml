@@ -12,12 +12,6 @@ services:
         fromDatabase:
           name: stockit-db
           property: connectionString
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: FRONTEND_URL
-        value: https://your-app-name.onrender.com
-      - key: BREVO_API_KEY
-        value: your-brevo-api-key
 
 databases:
   - name: stockit-db

@@ -5,13 +5,13 @@ DEPLOYMENT GUIDE FOR RENDER
 OVERVIEW
 --------
 Stockit is a full-stack TypeScript application built with React (frontend) and Express.js (backend).
-It uses PostgreSQL for data storage and includes user authentication via Replit OAuth.
+It uses PostgreSQL for data storage and provides direct access to salon stock management features.
 
 SYSTEM REQUIREMENTS
 ------------------
 - Node.js 18+ 
 - PostgreSQL database
-- Environment variables for authentication and database
+- Environment variable for database connection
 
 PROJECT STRUCTURE
 -----------------
@@ -55,17 +55,9 @@ npm run postinstall     # Post-install setup (runs db:push)
 ENVIRONMENT VARIABLES REQUIRED
 ------------------------------
 DATABASE_URL=postgres://username:password@host:port/database
-PGHOST=your-postgres-host
-PGPORT=5432
-PGUSER=your-postgres-user
-PGPASSWORD=your-postgres-password
-PGDATABASE=your-database-name
-SESSION_SECRET=your-session-secret-key
-REPL_ID=d1e4dc87-4049-4246-b7b0-98d36d9b2ed7 (for OAuth)
-ISSUER_URL=https://replit.com/oidc
-REPLIT_DOMAINS=your-domain.render.com
 
-PORT=5000 (or PORT provided by Render)
+Optional (automatically set by Render):
+PORT=5000
 
 DEPLOYMENT STEPS FOR RENDER
 ---------------------------
@@ -78,18 +70,17 @@ DEPLOYMENT STEPS FOR RENDER
    - Set environment: Node.js 18
 
 2. CONFIGURE ENVIRONMENT VARIABLES
-   - Add all required environment variables listed above
-   - DATABASE_URL should point to your PostgreSQL instance
-   - REPLIT_DOMAINS should be your Render domain
+   - Add DATABASE_URL pointing to your PostgreSQL instance
+   - PORT is automatically set by Render
 
 3. DATABASE SETUP
    - Create PostgreSQL database (Render PostgreSQL or external)
    - Run database migrations: npm run db:push
    - Database tables will be created automatically
 
-4. DOMAIN CONFIGURATION
-   - Update REPLIT_DOMAINS with your final Render domain
-   - Configure OAuth redirect URLs if needed
+4. FINAL DEPLOYMENT
+   - Application will be available on your assigned Render domain
+   - No additional configuration needed
 
 5. DEPLOY
    - Render will automatically build and deploy
@@ -115,13 +106,6 @@ DATABASE NOTES
 - Migrations are handled by npm run db:push
 - Supports PostgreSQL with connection pooling
 
-AUTHENTICATION
---------------
-- Uses Replit OAuth for user authentication
-- Requires REPL_ID and proper domain configuration
-- Sessions stored in PostgreSQL with express-session
-- Users are automatically created on first login
-
 FEATURES INCLUDED
 ----------------
 - Profit Calculator with VAT calculations
@@ -132,7 +116,7 @@ FEATURES INCLUDED
 - Interactive onboarding tutorial
 - Excel export functionality
 - Undo/redo functionality
-- User authentication and data persistence
+- Direct access to all stock management features
 
 STATIC FILES
 -----------
@@ -144,24 +128,23 @@ TROUBLESHOOTING
 --------------
 1. Build fails: Check Node.js version (requires 18+)
 2. Database connection: Verify DATABASE_URL format
-3. OAuth issues: Confirm REPL_ID and REPLIT_DOMAINS
-4. Missing dependencies: Run npm install
-5. TypeScript errors: Check shared types in /shared/
+3. Missing dependencies: Run npm install
+4. TypeScript errors: Check shared types in /shared/
+5. Schema issues: Run npm run db:push to sync database
 
 SECURITY CONSIDERATIONS
 ----------------------
-- All API routes require authentication except login
-- Session cookies are secure and HTTP-only
 - Database queries use parameterized statements
 - Environment variables store sensitive data
-- CORS configured for your domain only
+- Input validation on all API endpoints
+- CORS configured properly
 
 MONITORING
 ----------
 - Application logs are available in Render dashboard
 - Database connection status logged on startup
 - Error handling includes user-friendly messages
-- Unauthorized access redirects to login
+- API endpoints provide detailed error responses
 
 BACKUP & MAINTENANCE
 -------------------
