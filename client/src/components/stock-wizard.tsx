@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -36,6 +37,7 @@ interface StockWizardProps {
 export default function StockWizard({ isOpen, onClose, onComplete }: StockWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const steps: WizardStep[] = [
     {
@@ -354,8 +356,22 @@ export default function StockWizard({ isOpen, onClose, onComplete }: StockWizard
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      handleComplete();
     }
+  };
+
+  const handleComplete = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('stockit-wizard-dont-show', 'true');
+    }
+    onComplete();
+  };
+
+  const handleClose = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('stockit-wizard-dont-show', 'true');
+    }
+    onClose();
   };
 
   const prevStep = () => {
@@ -389,7 +405,7 @@ export default function StockWizard({ isOpen, onClose, onComplete }: StockWizard
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={onClose}
+                onClick={handleClose}
                 className="text-white hover:bg-white hover:bg-opacity-20"
               >
                 <X className="w-5 h-5" />
@@ -427,35 +443,54 @@ export default function StockWizard({ isOpen, onClose, onComplete }: StockWizard
           </div>
 
           {/* Footer */}
-          <div className="border-t bg-gray-50 px-8 py-4 flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className="flex items-center"
-            >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-            
-            <div className="flex space-x-2">
-              {steps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index <= currentStep ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}
+          <div className="border-t bg-gray-50 px-8 py-4">
+            {/* Don't show again checkbox */}
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="dont-show-again"
+                  checked={dontShowAgain}
+                  onCheckedChange={setDontShowAgain}
                 />
-              ))}
+                <label 
+                  htmlFor="dont-show-again" 
+                  className="text-sm text-gray-600 cursor-pointer"
+                >
+                  Don't show this tutorial again
+                </label>
+              </div>
             </div>
+            
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="flex items-center"
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+            
+              <div className="flex space-x-2">
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index <= currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
 
-            <Button
-              onClick={nextStep}
-              className="flex items-center bg-blue-600 hover:bg-blue-700"
-            >
-              {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+              <Button
+                onClick={nextStep}
+                className="flex items-center bg-blue-600 hover:bg-blue-700"
+              >
+                {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

@@ -186,6 +186,14 @@ The application implements an abstraction layer for data storage with both in-me
 ✓ Application now provides instant access to stock management features
 ✓ Maintained full functionality while eliminating authentication complexity
 
+### Stock Wizard Enhancement (July 10, 2025)
+✓ Added "Don't show again" checkbox option to opening tutorial wizard
+✓ Users can now permanently disable the tutorial from appearing on future visits
+✓ Checkbox setting saves to localStorage when wizard is closed or completed
+✓ Updated wizard logic to respect user's preference and skip display
+✓ Tutorial remains accessible via "Tutorial" button in header for manual access
+✓ Improved user experience by preventing unwanted tutorial interruptions
+
 ## Changelog
 - June 19, 2025: Initial setup and major enhancements
 - June 19, 2025: Fixed undo functionality to work correctly with Enter key navigation

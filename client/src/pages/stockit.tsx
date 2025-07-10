@@ -18,7 +18,8 @@ export default function Stockit() {
   // Check if user is new (show wizard on first visit)
   useEffect(() => {
     const hasSeenWizard = localStorage.getItem('stockit-wizard-completed');
-    if (!hasSeenWizard) {
+    const dontShowAgain = localStorage.getItem('stockit-wizard-dont-show');
+    if (!hasSeenWizard && !dontShowAgain) {
       setShowWizard(true);
     }
   }, []);
